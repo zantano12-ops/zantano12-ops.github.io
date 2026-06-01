@@ -2,18 +2,28 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>3D Hall Viewer - Modern Loft</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { background: #d6dde8; font-family: 'Courier New', monospace; overflow: hidden; touch-action: none; }
+  body { 
+    background: #d6dde8; 
+    font-family: 'Courier New', monospace; 
+    overflow: hidden; 
+    touch-action: none; 
+  }
   #canvas-container { width: 100vw; height: 100vh; position: relative; }
   canvas { display: block; outline: none; }
  
   #ui-overlay {
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
+    /* ใช้ env(safe-area-inset) เพื่อเว้นระยะขอบจอของมือถือรุ่นใหม่ */
+    top: env(safe-area-inset-top); 
+    left: env(safe-area-inset-left); 
+    right: env(safe-area-inset-right); 
+    bottom: env(safe-area-inset-bottom);
     pointer-events: none;
+    z-index: 10;
   }
  
   #title-panel {
@@ -25,17 +35,10 @@
     padding: 14px 18px;
     pointer-events: auto;
     transition: opacity 0.3s;
+    max-width: 300px;
   }
-  #title-panel h1 {
-    font-size: 13px;
-    letter-spacing: 3px;
-    color: #333;
-  }
-  #title-panel p {
-    font-size: 10px;
-    color: #5a6a80;
-    line-height: 1.6;
-  }
+  #title-panel h1 { font-size: 13px; letter-spacing: 3px; color: #333; }
+  #title-panel p { font-size: 10px; color: #5a6a80; line-height: 1.6; }
  
   #dims-panel {
     position: absolute;
@@ -49,13 +52,8 @@
     transition: opacity 0.3s;
   }
   #dims-panel h2 {
-    font-size: 10px;
-    letter-spacing: 2px;
-    color: #333;
-    text-transform: uppercase;
-    margin-bottom: 10px;
-    border-bottom: 1px solid rgba(60,100,160,0.15);
-    padding-bottom: 6px;
+    font-size: 10px; letter-spacing: 2px; color: #333; text-transform: uppercase;
+    margin-bottom: 10px; border-bottom: 1px solid rgba(60,100,160,0.15); padding-bottom: 6px;
   }
   .dim-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
   .dim-label { font-size: 10px; color: #5a6a80; }
@@ -112,12 +110,52 @@
   #fan-speed-fill { height: 100%; width: 65%; background: linear-gradient(90deg, #333, #666); border-radius: 2px; animation: pulse-bar 2s ease-in-out infinite; }
   @keyframes pulse-bar { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
 
-  /* ปรับแต่ง UI เมื่ออยู่บนหน้าจอเล็ก (iPad/Mobile) */
+  /* ---------------------------------------------------- */
+  /* RESPONSIVE DESIGN FOR DIFFERENT ASPECT RATIOS / SIZES*/
+  /* ---------------------------------------------------- */
+
+  /* สำหรับ Tablet และ มือถือแนวนอน */
+  @media (max-width: 1024px) {
+    #dims-panel { transform: scale(0.9); transform-origin: top right; }
+    #title-panel { transform: scale(0.9); transform-origin: top left; }
+    #view-btns { transform: scale(0.9); transform-origin: bottom right; }
+    #controls-panel { gap: 15px; padding: 8px 15px; }
+  }
+
+  /* สำหรับมือถือแนวตั้ง (Portrait) */
   @media (max-width: 768px) {
-    #controls-panel { flex-direction: column; gap: 8px; left: 20px; transform: none; bottom: 80px; align-items: flex-start; }
-    .ctrl { text-align: left; display: flex; gap: 8px; align-items: center; }
-    .ctrl span { margin-bottom: 0; min-width: 90px; }
-    #fan-indicator { display: none; } 
+    #title-panel { top: 10px; left: 10px; padding: 10px; max-width: 55%; }
+    #dims-panel { top: 10px; right: 10px; padding: 10px; min-width: 130px; transform: scale(0.85); }
+    
+    #view-btns { bottom: 10px; right: 10px; gap: 4px; }
+    .vbtn { padding: 6px 10px; font-size: 8px; }
+
+    #controls-panel { 
+      flex-direction: column; gap: 6px; 
+      left: 10px; bottom: 10px; transform: none; 
+      padding: 8px 12px; align-items: flex-start;
+      background: rgba(255,255,255,0.65);
+    }
+    .ctrl { text-align: left; display: flex; gap: 8px; align-items: center; font-size: 8px;}
+    .ctrl span { margin-bottom: 0; min-width: 80px; font-size: 9px;}
+    
+    #fan-indicator { display: none; /* ซ่อนพัดลมบนจอมือถือเพื่อประหยัดพื้นที่ */ } 
+  }
+
+  /* สำหรับมือถือจอเล็กมาก (เช่น iPhone รุ่นเก่า หรือจอแคบพิเศษ) */
+  @media (max-width: 480px) {
+    #title-panel { transform: scale(0.8); }
+    #dims-panel { transform: scale(0.75); }
+    /* ซ่อนกล่องอธิบาย Controls ไปเลย เพื่อให้เห็นโมเดลชัดๆ ปุ่ม View จะอยู่ล่างขวาที่เดียว */
+    #controls-panel { display: none; }
+  }
+
+  /* กรณีจอเตี้ยมากๆ (Landscape มือถือ) ป้องกัน UI บังตรงกลาง */
+  @media (max-height: 480px) {
+    #controls-panel { display: none; }
+    #title-panel { transform: scale(0.8); transform-origin: top left; }
+    #dims-panel { transform: scale(0.8); transform-origin: top right; }
+    #view-btns { transform: scale(0.8); transform-origin: bottom right; display: flex; flex-direction: row; flex-wrap: wrap; width: 200px; justify-content: flex-end;}
   }
 </style>
 </head>
