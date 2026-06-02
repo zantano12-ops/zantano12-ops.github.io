@@ -6,165 +6,142 @@
 <title>3D Hall Viewer - Modern Loft</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { 
-    background: #d6dde8; 
-    font-family: 'Courier New', monospace; 
-    overflow: hidden; 
-    touch-action: none; 
-  }
+  body { background: #d6dde8; font-family: 'Courier New', monospace; overflow: hidden; touch-action: none; }
   #canvas-container { width: 100vw; height: 100vh; position: relative; }
-  canvas { display: block; outline: none; }
+  canvas { display: block; }
  
   #ui-overlay {
     position: absolute;
-    /* ใช้ env(safe-area-inset) เพื่อเว้นระยะขอบจอของมือถือรุ่นใหม่ */
-    top: env(safe-area-inset-top); 
-    left: env(safe-area-inset-left); 
-    right: env(safe-area-inset-right); 
-    bottom: env(safe-area-inset-bottom);
+    top: 0; left: 0; right: 0; bottom: 0;
     pointer-events: none;
+    transition: opacity 0.3s;
     z-index: 10;
   }
  
+  /* ---- Desktop UI Elements ---- */
   #title-panel {
-    position: absolute;
-    top: 20px; left: 20px;
-    background: rgba(255,255,255,0.88);
-    border: 1px solid rgba(60,100,160,0.2);
-    border-radius: 8px;
-    padding: 14px 18px;
-    pointer-events: auto;
-    transition: opacity 0.3s;
-    max-width: 300px;
+    position: absolute; top: 20px; left: 20px;
+    background: rgba(255,255,255,0.88); border: 1px solid rgba(60,100,160,0.2);
+    border-radius: 8px; padding: 14px 18px; pointer-events: auto;
   }
   #title-panel h1 { font-size: 13px; letter-spacing: 3px; color: #333; }
   #title-panel p { font-size: 10px; color: #5a6a80; line-height: 1.6; }
  
   #dims-panel {
-    position: absolute;
-    top: 20px; right: 20px;
-    background: rgba(255,255,255,0.88);
-    border: 1px solid rgba(60,100,160,0.18);
-    border-radius: 8px;
-    padding: 14px 18px;
-    pointer-events: auto;
-    min-width: 170px;
-    transition: opacity 0.3s;
+    position: absolute; top: 20px; right: 20px;
+    background: rgba(255,255,255,0.88); border: 1px solid rgba(60,100,160,0.18);
+    border-radius: 8px; padding: 14px 18px; pointer-events: auto; min-width: 170px;
   }
-  #dims-panel h2 {
-    font-size: 10px; letter-spacing: 2px; color: #333; text-transform: uppercase;
-    margin-bottom: 10px; border-bottom: 1px solid rgba(60,100,160,0.15); padding-bottom: 6px;
-  }
+  #dims-panel h2 { font-size: 10px; letter-spacing: 2px; color: #333; text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid rgba(60,100,160,0.15); padding-bottom: 6px; }
   .dim-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
   .dim-label { font-size: 10px; color: #5a6a80; }
   .dim-val { font-size: 10px; color: #111; font-weight: bold; }
- 
   .legend-item { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
   .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
   .legend-text { font-size: 9px; color: #7a8a9a; }
  
   #controls-panel {
-    position: absolute;
-    bottom: 20px; left: 50%;
-    transform: translateX(-50%);
-    background: rgba(255,255,255,0.82);
-    border: 1px solid rgba(60,100,160,0.18);
-    border-radius: 8px;
-    padding: 10px 20px;
-    display: flex; gap: 24px;
-    pointer-events: none;
-    transition: opacity 0.3s;
+    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+    background: rgba(255,255,255,0.95); border: 2px solid #4a90e2; border-radius: 8px;
+    padding: 10px 20px; display: flex; gap: 24px; pointer-events: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
   }
-  .ctrl { font-size: 9px; color: #5a6a7a; letter-spacing: 0.5px; text-align: center; }
-  .ctrl span { display: block; color: #333; font-size: 11px; margin-bottom: 2px; font-weight: bold; }
+  .ctrl { font-size: 9px; color: #5a6a7a; letter-spacing: 1px; text-align: center; }
+  .ctrl span { display: block; color: #1a4a99; font-size: 12px; font-weight: bold; margin-bottom: 2px; }
+  .ctrl-highlight { color: #d9534f; font-weight: bold; }
  
   #view-btns {
-    position: absolute;
-    bottom: 20px; right: 20px;
-    display: flex; flex-direction: column; gap: 6px;
-    pointer-events: auto;
+    position: absolute; bottom: 20px; right: 20px;
+    display: flex; flex-direction: column; gap: 6px; pointer-events: auto;
   }
   .vbtn {
-    background: rgba(255,255,255,0.88);
-    border: 1px solid rgba(60,100,160,0.22);
-    color: #333; font-size: 9px; letter-spacing: 1.5px;
-    padding: 7px 12px; border-radius: 5px; cursor: pointer;
-    text-transform: uppercase; transition: all 0.2s;
+    background: rgba(255,255,255,0.88); border: 1px solid rgba(60,100,160,0.22); color: #333; 
+    font-size: 9px; letter-spacing: 1.5px; padding: 7px 12px; border-radius: 5px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; white-space: nowrap;
   }
   .vbtn:hover { background: rgba(60,100,160,0.1); border-color: rgba(60,100,160,0.5); }
   .btn-toggle { background: #e8f0fe; color: #1a4a99; font-weight: bold; }
   .btn-toggle.off { background: #fce8e8; color: #991a1a; border-color: #dfaaaa; }
+  #fpToggleBtn, #mobileToggleBtn { border: 2px solid #4a90e2; margin-top: 4px; }
+  #fpToggleBtn.off, #mobileToggleBtn.off { border: 1px solid #dfaaaa; }
  
-  #fan-indicator {
-    position: absolute;
-    bottom: 20px; left: 20px;
-    background: rgba(255,255,255,0.88);
-    border: 1px solid rgba(60,100,160,0.18);
-    border-radius: 8px;
-    padding: 10px 14px;
-    pointer-events: none;
-    transition: opacity 0.3s;
-  }
+  #overviewBtn { position: absolute; top: 95px; left: 20px; border: 2px solid #4a90e2; pointer-events: auto; }
+
+  #fan-indicator { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.88); border: 1px solid rgba(60,100,160,0.18); border-radius: 8px; padding: 10px 14px; pointer-events: none; }
   #fan-indicator p { font-size: 9px; color: #5a7090; letter-spacing: 1px; }
   #fan-speed-bar { margin-top: 6px; width: 100px; height: 3px; background: rgba(100,180,255,0.1); border-radius: 2px; overflow: hidden; }
   #fan-speed-fill { height: 100%; width: 65%; background: linear-gradient(90deg, #333, #666); border-radius: 2px; animation: pulse-bar 2s ease-in-out infinite; }
   @keyframes pulse-bar { 0%,100% { opacity: 0.7; } 50% { opacity: 1; } }
 
+  #crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 10px; height: 10px; background: rgba(255,255,255,0.8); border-radius: 50%; pointer-events: none; display: none; mix-blend-mode: difference; z-index: 999; }
+
+  /* ---- Mobile UI Controls (Joystick & Jump) ---- */
+  #joystick-base {
+    position: absolute; bottom: 80px; left: 10vw;
+    width: 140px; height: 140px; border-radius: 50%; background: rgba(0,0,0,0.15); border: 2px solid rgba(255,255,255,0.4);
+    display: none; pointer-events: auto; touch-action: none; user-select: none; z-index: 20;
+  }
+  #joystick-stick {
+    position: absolute; top: 50%; left: 50%; width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.6);
+    transform: translate(-50%, -50%); pointer-events: none;
+  }
+  #jump-btn {
+    position: absolute; bottom: 110px; right: 22vw;
+    width: 80px; height: 80px; border-radius: 50%; background: rgba(0,0,0,0.15); border: 2px solid rgba(255,255,255,0.4);
+    color: white; font-weight: bold; font-size: 16px; display: none; pointer-events: auto;
+    line-height: 80px; text-align: center; touch-action: none; user-select: none; z-index: 20;
+  }
+
   /* ---------------------------------------------------- */
   /* RESPONSIVE DESIGN FOR DIFFERENT ASPECT RATIOS / SIZES*/
   /* ---------------------------------------------------- */
 
-  /* สำหรับ Tablet และ มือถือแนวนอน */
-  @media (max-width: 1024px) {
-    #dims-panel { transform: scale(0.9); transform-origin: top right; }
-    #title-panel { transform: scale(0.9); transform-origin: top left; }
-    #view-btns { transform: scale(0.9); transform-origin: bottom right; }
-    #controls-panel { gap: 15px; padding: 8px 15px; }
-  }
-
-  /* สำหรับมือถือแนวตั้ง (Portrait) */
-  @media (max-width: 768px) {
-    #title-panel { top: 10px; left: 10px; padding: 10px; max-width: 55%; }
-    #dims-panel { top: 10px; right: 10px; padding: 10px; min-width: 130px; transform: scale(0.85); }
+  /* สำหรับ Tablet และ มือถือแนวตั้ง (Portrait) */
+  @media (max-width: 900px), (max-height: 600px) {
+    #dims-panel, #controls-panel, #fan-indicator { display: none !important; }
     
-    #view-btns { bottom: 10px; right: 10px; gap: 4px; }
-    .vbtn { padding: 6px 10px; font-size: 8px; }
+    #title-panel { top: 10px; left: 10px; padding: 10px; z-index: 15;}
+    #title-panel h1 { font-size: 11px; letter-spacing: 1px; }
+    #title-panel p { font-size: 9px; }
 
-    #controls-panel { 
-      flex-direction: column; gap: 6px; 
-      left: 10px; bottom: 10px; transform: none; 
-      padding: 8px 12px; align-items: flex-start;
-      background: rgba(255,255,255,0.65);
+    #view-btns {
+      top: 10px; right: 10px; bottom: auto; 
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; z-index: 15;
     }
-    .ctrl { text-align: left; display: flex; gap: 8px; align-items: center; font-size: 8px;}
-    .ctrl span { margin-bottom: 0; min-width: 80px; font-size: 9px;}
+    #view-btns hr { grid-column: span 2; margin: 2px 0; }
+    .vbtn { padding: 8px 6px; font-size: 8px; text-align: center; }
+
+    #overviewBtn { top: 75px; left: 10px; right: auto; bottom: auto; padding: 8px 10px; font-size: 9px; z-index: 15;}
     
-    #fan-indicator { display: none; /* ซ่อนพัดลมบนจอมือถือเพื่อประหยัดพื้นที่ */ } 
+    #joystick-base { bottom: 40px; left: 40px; width: 120px; height: 120px; }
+    #joystick-stick { width: 50px; height: 50px; }
+    #jump-btn { bottom: 60px; right: 80px; width: 75px; height: 75px; line-height: 75px; font-size: 14px; }
   }
 
-  /* สำหรับมือถือจอเล็กมาก (เช่น iPhone รุ่นเก่า หรือจอแคบพิเศษ) */
-  @media (max-width: 480px) {
-    #title-panel { transform: scale(0.8); }
-    #dims-panel { transform: scale(0.75); }
-    /* ซ่อนกล่องอธิบาย Controls ไปเลย เพื่อให้เห็นโมเดลชัดๆ ปุ่ม View จะอยู่ล่างขวาที่เดียว */
-    #controls-panel { display: none; }
-  }
-
-  /* กรณีจอเตี้ยมากๆ (Landscape มือถือ) ป้องกัน UI บังตรงกลาง */
-  @media (max-height: 480px) {
-    #controls-panel { display: none; }
-    #title-panel { transform: scale(0.8); transform-origin: top left; }
-    #dims-panel { transform: scale(0.8); transform-origin: top right; }
-    #view-btns { transform: scale(0.8); transform-origin: bottom right; display: flex; flex-direction: row; flex-wrap: wrap; width: 200px; justify-content: flex-end;}
+  /* สำหรับมือถือแนวนอนสุดๆ (Extreme Landscape - Height < 450px) */
+  @media (max-height: 450px) {
+    #title-panel { display: none; } 
+    
+    #view-btns {
+      grid-template-columns: repeat(3, 1fr); 
+      top: 5px; right: 5px; gap: 3px;
+    }
+    #view-btns hr { grid-column: span 3; margin: 1px 0; }
+    .vbtn { padding: 6px 4px; font-size: 7px; letter-spacing: 0.5px; }
+    
+    #overviewBtn { top: 10px; left: 10px; right: auto; bottom: auto; padding: 6px; font-size: 8px; }
+    
+    #joystick-base { bottom: 20px; left: 40px; width: 100px; height: 100px; }
+    #joystick-stick { width: 45px; height: 45px; }
+    #jump-btn { bottom: 35px; right: 80px; width: 65px; height: 65px; line-height: 65px; font-size: 12px; }
   }
 </style>
 </head>
 <body>
 <div id="canvas-container">
+  <div id="crosshair"></div>
   <div id="ui-overlay">
     <div id="title-panel">
       <h1>Hall 3D Viewer</h1>
-      <p>บ้าน 2 ชั้น — สไตล์โมเดิร์นลอฟท์ ปูนเปลือยขัดมัน</p>
+      <p>บ้าน 2 ชั้น — จัดวางเฟอร์นิเจอร์ & หน้าต่างใหม่</p>
     </div>
  
     <div id="dims-panel">
@@ -182,9 +159,10 @@
     </div>
  
     <div id="controls-panel">
-      <div class="ctrl"><span>👆 1 นิ้ว / L-Click</span>หมุนมุมมอง</div>
-      <div class="ctrl"><span>✌️ จีบ / Scroll</span>ซูมเข้า-ออก</div>
-      <div class="ctrl"><span>✌️ ลาก / R-Click</span>เลื่อนกล้อง</div>
+      <div class="ctrl"><span>🖱 Drag / Pinch</span>(โหมดปกติ) หมุน/ซูม มุมมอง</div>
+      <div class="ctrl"><span>⌨ W A S D</span>(โหมด FP) บังคับเดิน</div>
+      <div class="ctrl"><span>Spacebar</span>กระโดด/ขึ้นบันได</div>
+      <div class="ctrl"><span class="ctrl-highlight">🚪 Auto Door</span>เดินเข้าใกล้ประตูเพื่อเปิด</div>
     </div>
  
     <div id="view-btns">
@@ -194,16 +172,23 @@
       <button class="vbtn" onclick="setView('stair')">Stair</button>
       <button class="vbtn" onclick="setView('back')">Back</button>
       <button class="vbtn" onclick="setView('top')">Top</button>
-      <hr style="border:0; border-top:1px solid rgba(60,100,160,0.2); margin: 6px 0;">
+      <hr>
       <button id="roofToggleBtn" class="vbtn btn-toggle" onclick="toggleRoof()">Roof: ON</button>
       <button id="floor2ToggleBtn" class="vbtn btn-toggle" onclick="toggleFloor2()">Roof+2nd: ON</button>
-      <button id="uiToggleBtn" class="vbtn btn-toggle" onclick="toggleUI()">UI: ON</button>
+      <button id="winToggleBtn" class="vbtn btn-toggle off" onclick="toggleWindows()">Windows: CLOSED</button>
+      <button id="fpToggleBtn" class="vbtn btn-toggle off" onclick="toggleFirstPerson()">1st Person: OFF</button>
+      <button id="mobileToggleBtn" class="vbtn btn-toggle off" onclick="toggleMobileUI()">Mobile UI: OFF</button>
     </div>
  
+    <button id="overviewBtn" class="vbtn btn-toggle off" onclick="toggleOverview()">🎥 Overview: OFF</button>
+    
     <div id="fan-indicator">
       <p>🌀 FAN ROTATION</p>
       <div id="fan-speed-bar"><div id="fan-speed-fill"></div></div>
     </div>
+
+    <div id="joystick-base"><div id="joystick-stick"></div></div>
+    <div id="jump-btn">JUMP</div>
   </div>
 </div>
  
@@ -219,11 +204,11 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.3; 
+renderer.toneMappingExposure = 1.3;
 document.getElementById('canvas-container').prepend(renderer.domElement);
  
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xbdd1e6); 
+scene.background = new THREE.Color(0xbdd1e6);
 scene.fog = new THREE.FogExp2(0xbdd1e6, 0.012);
 
 const mainRoofGroup = new THREE.Group();
@@ -231,18 +216,16 @@ const floor2Group = new THREE.Group();
 scene.add(mainRoofGroup);
 scene.add(floor2Group);
  
-const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 200);
-camera.position.set(10, 8, 12);
-camera.lookAt(0, H/2, 0);
+const camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 200);
  
 // ---- Lights ----
 const ambient = new THREE.AmbientLight(0xd0dff0, 2.2);
 scene.add(ambient);
  
 const ceilLightPositions = [
-  [-1, H-0.1, -3], [1, H-0.1, -3],
-  [-1, H-0.1,  3], [1, H-0.1,  3],
-  [-1, H-0.1,  0], [1, H-0.1,  0],
+  [-1, H - 0.35, -3], [1, H - 0.35, -3],
+  [-1, H - 0.35,  3], [1, H - 0.35,  3],
+  [-1, H - 0.35,  0], [1, H - 0.35,  0],
 ];
 ceilLightPositions.forEach((pos, i) => {
   const pl = new THREE.PointLight(i < 4 ? 0xffd090 : 0xaad0ff, 2.0, 7);
@@ -262,26 +245,227 @@ scene.add(dirLight);
 const floorMat = new THREE.MeshStandardMaterial({ color: 0x1e2430, roughness: 0.8, metalness: 0.05 });
 const wallMat = new THREE.MeshStandardMaterial({ color: 0x9b9c9d, roughness: 0.85, metalness: 0.0 });
 const pillarMat = new THREE.MeshStandardMaterial({ color: 0x9b9c9d, roughness: 0.85, metalness: 0.0 });
-const ceilMat = new THREE.MeshStandardMaterial({ color: 0x1a1e28, roughness: 0.7 });
+const ceilMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.9 });
 const dimLineMat = new THREE.LineBasicMaterial({ color: 0xff9955, transparent: true, opacity: 0.7 });
 
 const glassMat = new THREE.MeshStandardMaterial({
   color: 0x99aacc, transparent: true, opacity: 0.35,
   roughness: 0.05, metalness: 0.2, side: THREE.DoubleSide,
-}); 
+});
 const glassBlockMat = new THREE.MeshStandardMaterial({
   color: 0xccddee, transparent: true, opacity: 0.65,
   roughness: 0.15, metalness: 0.3, side: THREE.DoubleSide
-}); 
-const groutMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.9 }); 
+});
+const groutMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.9 });
 
-const doorMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.6, metalness: 0.05 }); 
-const frameMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.4, metalness: 0.3 }); 
-const roofTopMat = new THREE.MeshStandardMaterial({ color: 0x2b2b2b, roughness: 0.8, side: THREE.DoubleSide }); 
+const doorMat = new THREE.MeshStandardMaterial({ color: 0x5c3a21, roughness: 0.6, metalness: 0.05 });
+const bathDoorMat = new THREE.MeshStandardMaterial({ color: 0x221105, roughness: 0.8, metalness: 0.1 }); 
+const frameMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.4, metalness: 0.3 });
+const roofTopMat = new THREE.MeshStandardMaterial({ color: 0x2b2b2b, roughness: 0.8, side: THREE.DoubleSide });
+
+// Furniture Materials
+const fWood = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
+const fDarkWood = new THREE.MeshStandardMaterial({ color: 0x2b1d14, roughness: 0.9 });
+const fFabric = new THREE.MeshStandardMaterial({ color: 0x5a6a7a, roughness: 1.0 });
+const fWhite = new THREE.MeshStandardMaterial({ color: 0xe0e0e0, roughness: 0.7 });
+const fBlack = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.4 });
+const fMetal = new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.8, roughness: 0.3 });
  
 // ---- Helper: box with wireframe ----
 const WALL_T = 0.08;
 const FL2 = H / 2;
+
+// ============================================================================
+// ---- FURNITURE & DECOR SYSTEM ----
+// ============================================================================
+function addFurn(type, x, y, z, rotY, parent) {
+    const grp = new THREE.Group();
+    grp.position.set(x, y, z);
+    grp.rotation.y = rotY;
+
+    const makeMesh = (w, h, d, mat, mx, my, mz) => {
+        const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+        m.position.set(mx, my + h/2, mz);
+        m.castShadow = true; m.receiveShadow = true;
+        grp.add(m); return m;
+    };
+
+    if(type === 'sofa') {
+        makeMesh(2.0, 0.4, 0.8, fFabric, 0, 0, 0); 
+        makeMesh(2.0, 0.5, 0.2, fFabric, 0, 0.4, -0.3); 
+        makeMesh(0.2, 0.6, 0.8, fFabric, -0.9, 0, 0); 
+        makeMesh(0.2, 0.6, 0.8, fFabric, 0.9, 0, 0); 
+    } else if(type === 'tvstand') {
+        makeMesh(2.0, 0.4, 0.4, fWood, 0, 0, 0);
+        makeMesh(1.6, 0.9, 0.05, fBlack, 0, 1.1, -0.32); 
+    } else if(type === 'table') {
+        makeMesh(1.6, 0.05, 0.9, fDarkWood, 0, 0.75, 0);
+        makeMesh(0.05, 0.75, 0.05, fDarkWood, -0.7, 0, -0.35);
+        makeMesh(0.05, 0.75, 0.05, fDarkWood, 0.7, 0, -0.35);
+        makeMesh(0.05, 0.75, 0.05, fDarkWood, -0.7, 0, 0.35);
+        makeMesh(0.05, 0.75, 0.05, fDarkWood, 0.7, 0, 0.35);
+    } else if(type === 'chair') {
+        makeMesh(0.4, 0.05, 0.4, fWood, 0, 0.45, 0);
+        makeMesh(0.4, 0.4, 0.05, fWood, 0, 0.5, -0.175);
+        makeMesh(0.05, 0.45, 0.05, fWood, -0.15, 0, -0.15);
+        makeMesh(0.05, 0.45, 0.05, fWood, 0.15, 0, -0.15);
+        makeMesh(0.05, 0.45, 0.05, fWood, -0.15, 0, 0.15);
+        makeMesh(0.05, 0.45, 0.05, fWood, 0.15, 0, 0.15);
+    } else if(type === 'counter') {
+        makeMesh(2.0, 0.85, 0.6, fDarkWood, 0, 0, 0);
+        makeMesh(2.0, 0.05, 0.62, fWhite, 0, 0.85, 0);
+    } else if(type === 'fridge') {
+        makeMesh(0.82, 1.82, 0.65, fMetal, 0, 0, 0);
+    } else if(type === 'kitchen_sink') {
+        makeMesh(0.6, 0.85, 0.8, fDarkWood, 0, 0, 0); 
+        makeMesh(0.62, 0.05, 0.82, fWhite, 0, 0.85, 0); 
+        const fMat = new THREE.MeshStandardMaterial({color: 0x888888, metalness: 0.8, roughness: 0.2});
+        makeMesh(0.4, 0.15, 0.5, fMat, 0, 0.85, 0); 
+        makeMesh(0.04, 0.2, 0.04, fMat, -0.2, 0.9, 0); 
+        makeMesh(0.15, 0.04, 0.04, fMat, -0.15, 1.1, 0); 
+    } else if(type === 'toilet') {
+        makeMesh(0.3, 0.4, 0.4, fWhite, 0, 0, 0.1);
+        makeMesh(0.4, 0.4, 0.2, fWhite, 0, 0.4, -0.1);
+    } else if(type === 'sink') {
+        makeMesh(0.5, 0.15, 0.4, fWhite, 0, 0.8, 0);
+    } else if(type === 'desk') {
+        makeMesh(1.2, 0.05, 0.6, fWood, 0, 0.75, 0);
+        makeMesh(0.05, 0.75, 0.6, fWood, -0.55, 0, 0);
+        makeMesh(0.05, 0.75, 0.6, fWood, 0.55, 0, 0);
+    } else if(type === 'wardrobe') {
+        makeMesh(1.2, 2.0, 0.6, fWood, 0, 0, 0);
+    } else if(type === 'bookshelf') {
+        makeMesh(1.2, 1.8, 0.3, fDarkWood, 0, 0, 0);
+        makeMesh(1.1, 0.05, 0.28, fWood, 0, 0.4, 0);
+        makeMesh(1.1, 0.05, 0.28, fWood, 0, 0.8, 0);
+        makeMesh(1.1, 0.05, 0.28, fWood, 0, 1.2, 0);
+    } else if(type === 'bed') {
+        makeMesh(1.6, 0.3, 2.1, fWood, 0, 0, 0); 
+        makeMesh(1.5, 0.2, 2.0, fWhite, 0, 0.3, 0); 
+        makeMesh(1.52, 0.22, 1.2, fFabric, 0, 0.3, 0.4); 
+        makeMesh(1.2, 0.1, 0.4, fWhite, 0, 0.45, -0.7); 
+    } else if(type === 'washing_machine') { 
+        makeMesh(0.6, 0.85, 0.6, fWhite, 0, 0, 0); 
+        makeMesh(0.4, 0.4, 0.05, fBlack, 0, 0.4, 0.31); 
+        makeMesh(0.15, 0.1, 0.05, fBlack, -0.15, 0.7, 0.31); 
+    } else if(type === 'drying_rack') { 
+        makeMesh(1.2, 0.02, 0.02, fMetal, 0, 1.2, 0); 
+        makeMesh(0.02, 1.2, 0.02, fMetal, -0.55, 0, 0); 
+        makeMesh(0.02, 1.2, 0.02, fMetal, 0.55, 0, 0); 
+        makeMesh(0.5, 0.02, 0.02, fMetal, -0.55, 0.05, 0); 
+        makeMesh(0.5, 0.02, 0.02, fMetal, 0.55, 0.05, 0); 
+        makeMesh(1.2, 0.02, 0.02, fMetal, 0, 0.6, 0); 
+    }
+    parent.add(grp);
+}
+
+function addArt(cx, cy, cz, w, h, rotY, bgColor, fgColor, parent = scene) {
+    const grp = new THREE.Group();
+    grp.position.set(cx, cy, cz);
+    grp.rotation.y = rotY;
+    
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.04), new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 }));
+    frame.castShadow = true;
+    grp.add(frame);
+    
+    const canvas = new THREE.Mesh(new THREE.BoxGeometry(w - 0.08, h - 0.08, 0.045), new THREE.MeshStandardMaterial({ color: bgColor, roughness: 0.5 }));
+    grp.add(canvas);
+    
+    const art1 = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.4, h * 0.4), new THREE.MeshStandardMaterial({ color: fgColor, roughness: 0.4 }));
+    art1.position.set(-w*0.1, h*0.1, 0.023);
+    grp.add(art1);
+    
+    const art2 = new THREE.Mesh(new THREE.CircleGeometry(w * 0.2, 32), new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.4 }));
+    art2.position.set(w*0.15, -h*0.1, 0.023);
+    grp.add(art2);
+    
+    parent.add(grp);
+}
+
+const exhaustFans = [];
+function addExhaustFan(x, y, z, rotY, parent = scene) {
+    const grp = new THREE.Group();
+    grp.position.set(x, y, z);
+    grp.rotation.y = rotY;
+
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.05), new THREE.MeshStandardMaterial({ color: 0xdddddd, roughness: 0.7 }));
+    grp.add(frame);
+    const hole = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.06, 16), new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.9 }));
+    hole.rotation.x = Math.PI / 2;
+    grp.add(hole);
+
+    const blades = new THREE.Group();
+    const bMat = new THREE.MeshStandardMaterial({ color: 0x888888, roughness: 0.5 });
+    for(let i=0; i<4; i++) {
+        const blade = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.05, 0.01), bMat);
+        blade.rotation.z = (i * Math.PI) / 4;
+        blade.rotation.x = 0.2;
+        blades.add(blade);
+    }
+    blades.position.z = 0.01;
+    grp.add(blades);
+    exhaustFans.push(blades);
+
+    parent.add(grp);
+}
+
+// ============================================================================
+// ---- INTERACTIVE DOORS & WINDOWS SYSTEM ----
+// ============================================================================
+const interactiveDoors = [];
+const interactiveWindows = [];
+let windowsOpen = false;
+
+window.toggleWindows = function() {
+    windowsOpen = !windowsOpen;
+    const btn = document.getElementById('winToggleBtn');
+    if(windowsOpen) {
+        btn.innerText = 'Windows: OPEN';
+        btn.classList.remove('off');
+    } else {
+        btn.innerText = 'Windows: CLOSED';
+        btn.classList.add('off');
+    }
+};
+
+function addSwingDoor(w, h, d, mat, cx, cy, cz, hingeAxis, openAngle, trigger, parent = scene) {
+    const pivot = new THREE.Group();
+    let px = cx, pz = cz, mx = 0, mz = 0;
+    
+    if (hingeAxis === '-x') { px = cx - w/2; mx = w/2; }
+    else if (hingeAxis === '+x') { px = cx + w/2; mx = -w/2; }
+    else if (hingeAxis === '-z') { pz = cz - d/2; mz = d/2; }
+    else if (hingeAxis === '+z') { pz = cz + d/2; mz = -d/2; }
+    
+    pivot.position.set(px, cy, pz);
+    
+    const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    doorMesh.position.set(mx, 0, mz);
+    doorMesh.castShadow = true;
+    doorMesh.receiveShadow = true;
+    pivot.add(doorMesh);
+    parent.add(pivot);
+    
+    const handleMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8, roughness: 0.2 });
+    const hGeo = hingeAxis.includes('x') ? new THREE.BoxGeometry(0.12, 0.03, d + 0.08) : new THREE.BoxGeometry(w + 0.08, 0.03, 0.12);
+    const handle = new THREE.Mesh(hGeo, handleMat);
+    
+    let hx = 0, hz = 0;
+    if (hingeAxis === '-x') hx = w/2 - 0.15;
+    if (hingeAxis === '+x') hx = -w/2 + 0.15;
+    if (hingeAxis === '-z') hz = d/2 - 0.15;
+    if (hingeAxis === '+z') hz = -d/2 + 0.15;
+    
+    handle.position.set(hx, 0, hz);
+    doorMesh.add(handle);
+
+    interactiveDoors.push({
+        mesh: pivot, type: 'swing',
+        closedRot: 0, openRot: openAngle,
+        trigger: trigger, radius: 2.0, isOpen: false
+    });
+    return pivot;
+}
 
 function addBox(w, h, d, mat, x, y, z, edgeColor, parent = scene) {
   const geo = new THREE.BoxGeometry(w, h, d);
@@ -300,14 +484,11 @@ function addBox(w, h, d, mat, x, y, z, edgeColor, parent = scene) {
   return mesh;
 }
 
-const tallWinH = 1.82; 
-const tallWinBot = 0.6; 
-const tallWinTop = tallWinBot + tallWinH; 
+const tallWinH = 1.82, tallWinBot = 0.6, tallWinTop = tallWinBot + tallWinH; 
 
 function createTallAwningWindow(cx, cz, parent = scene) {
   const outerL = cx - 0.4, outerR = cx + 0.4;
-  const innerW = 0.72;
-  const innerL = cx - 0.36, innerR = cx + 0.36;
+  const innerW = 0.72, innerL = cx - 0.36, innerR = cx + 0.36;
   const outerB = FL2 + tallWinBot, outerT = FL2 + tallWinTop;
   const innerB = outerB + 0.04, innerT = outerT - 0.04;
 
@@ -319,39 +500,26 @@ function createTallAwningWindow(cx, cz, parent = scene) {
   const splitY = outerB + (tallWinH * 0.3); 
   addBox(innerW, 0.04, WALL_T + 0.04, frameMat, cx, splitY, cz, false, parent);
 
-  const glassBotB = innerB; 
-  const glassBotT = splitY - 0.02;
-  const glassBotH = glassBotT - glassBotB;
+  const glassBotB = innerB, glassBotT = splitY - 0.02, glassBotH = glassBotT - glassBotB;
   addBox(innerW, glassBotH, 0.02, glassMat, cx, (glassBotB + glassBotT)/2, cz, false, parent);
 
-  const sashB = splitY + 0.02;
-  const sashT = innerT;
-  const sashH = sashT - sashB;
-  const sashCY = (sashB + sashT)/2;
-  const sw = 0.04; 
-  const sashZ = cz + 0.01; 
-
-  addBox(sw, sashH, sw, frameMat, innerL + sw/2, sashCY, sashZ, false, parent); 
-  addBox(sw, sashH, sw, frameMat, innerR - sw/2, sashCY, sashZ, false, parent); 
-  addBox(innerW - sw*2, sw, sw, frameMat, cx, sashT - sw/2, sashZ, false, parent); 
-  addBox(innerW - sw*2, sw, sw, frameMat, cx, sashB + sw/2, sashZ, false, parent); 
-
-  addBox(innerW - sw*2, sashH - sw*2, 0.02, glassMat, cx, sashCY, sashZ, false, parent);
-
-  const handleMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.2 });
-  addBox(0.12, 0.02, 0.04, handleMat, cx, sashB + sw/2, sashZ + 0.03, false, parent);
+  const sashB = splitY + 0.02, sashT = innerT, sashH = sashT - sashB, sashCY = (sashB + sashT)/2, sw = 0.04, sashZ = cz + 0.01; 
+  
+  const pivot = new THREE.Group();
+  pivot.position.set(cx, sashT, sashZ);
+  addBox(sw, sashH, sw, frameMat, innerL - cx + sw/2, -sashH/2, 0, false, pivot);
+  addBox(sw, sashH, sw, frameMat, innerR - cx - sw/2, -sashH/2, 0, false, pivot);
+  addBox(innerW - sw*2, sw, sw, frameMat, 0, -sw/2, 0, false, pivot);
+  addBox(innerW - sw*2, sw, sw, frameMat, 0, -sashH + sw/2, 0, false, pivot);
+  addBox(innerW - sw*2, sashH - sw*2, 0.02, glassMat, 0, -sashH/2, 0, false, pivot);
+  parent.add(pivot);
+  const rotX = cz < 0 ? Math.PI/6 : -Math.PI/6;
+  interactiveWindows.push({ mesh: pivot, type: 'awning', openRotX: rotX, openRotZ: 0 });
 }
 
 function addTallWindowGroup(cx, cz, panes, facing = 'z', baseY = 0, parent = scene) {
-  const paneInnerW = 0.72;
-  const fw = 0.04; 
-  const totalW = fw + panes * (paneInnerW + fw);
-  
-  const outerB = baseY + tallWinBot;
-  const outerT = baseY + tallWinTop;
-  const splitY = outerB + (tallWinH * 0.3); 
-  const sashCY = (splitY + 0.02 + outerT - 0.04) / 2;
-  
+  const paneInnerW = 0.72, fw = 0.04, totalW = fw + panes * (paneInnerW + fw);
+  const outerB = baseY + tallWinBot, outerT = baseY + tallWinTop, splitY = outerB + (tallWinH * 0.3), sashCY = (splitY + 0.02 + outerT - 0.04) / 2;
   const start = (facing === 'z' ? cx : cz) - totalW / 2;
   
   if (facing === 'z') {
@@ -366,58 +534,50 @@ function addTallWindowGroup(cx, cz, panes, facing = 'z', baseY = 0, parent = sce
   
   for (let i = 0; i <= panes; i++) {
      const pos = start + fw / 2 + i * (paneInnerW + fw);
-     if (facing === 'z') {
-        addBox(fw, tallWinH, WALL_T + 0.04, frameMat, pos, (outerB + outerT) / 2, cz, false, parent);
-     } else {
-        addBox(WALL_T + 0.04, tallWinH, fw, frameMat, cx, (outerB + outerT) / 2, pos, false, parent);
-     }
+     if (facing === 'z') addBox(fw, tallWinH, WALL_T + 0.04, frameMat, pos, (outerB + outerT) / 2, cz, false, parent);
+     else addBox(WALL_T + 0.04, tallWinH, fw, frameMat, cx, (outerB + outerT) / 2, pos, false, parent);
   }
   
   for (let i = 0; i < panes; i++) {
      const pCenter = start + fw + paneInnerW / 2 + i * (paneInnerW + fw);
-     const glassBotB = outerB + fw;
-     const glassBotT = splitY - fw / 2;
-     const glassBotH = glassBotT - glassBotB;
-     
-     const sashB = splitY + fw / 2;
-     const sashT = outerT - fw;
-     const sashH = sashT - sashB;
-     const sw = fw;
+     const glassBotB = outerB + fw, glassBotT = splitY - fw / 2, glassBotH = glassBotT - glassBotB;
+     const sashB = splitY + fw / 2, sashT = outerT - fw, sashH = sashT - sashB, sw = fw;
      
      if (facing === 'z') {
         const sashZ = cz + 0.01;
         addBox(paneInnerW, glassBotH, 0.02, glassMat, pCenter, (glassBotB + glassBotT) / 2, cz, false, parent);
-        addBox(sw, sashH, sw, frameMat, pCenter - paneInnerW / 2 + sw / 2, sashCY, sashZ, false, parent);
-        addBox(sw, sashH, sw, frameMat, pCenter + paneInnerW / 2 - sw / 2, sashCY, sashZ, false, parent);
-        addBox(paneInnerW - sw * 2, sw, sw, frameMat, pCenter, sashT - sw / 2, sashZ, false, parent);
-        addBox(paneInnerW - sw * 2, sw, sw, frameMat, pCenter, sashB + sw / 2, sashZ, false, parent);
-        addBox(paneInnerW - sw * 2, sashH - sw * 2, 0.02, glassMat, pCenter, sashCY, sashZ, false, parent);
-        const handleMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.2 });
-        addBox(0.12, 0.02, 0.04, handleMat, pCenter, sashB + sw / 2, sashZ + 0.03, false, parent);
+        
+        const pivot = new THREE.Group();
+        pivot.position.set(pCenter, sashT, sashZ);
+        addBox(sw, sashH, sw, frameMat, -paneInnerW/2 + sw/2, -sashH/2, 0, false, pivot);
+        addBox(sw, sashH, sw, frameMat, paneInnerW/2 - sw/2, -sashH/2, 0, false, pivot);
+        addBox(paneInnerW - sw*2, sw, sw, frameMat, 0, -sw/2, 0, false, pivot);
+        addBox(paneInnerW - sw*2, sw, sw, frameMat, 0, -sashH + sw/2, 0, false, pivot);
+        addBox(paneInnerW - sw*2, sashH - sw*2, 0.02, glassMat, 0, -sashH/2, 0, false, pivot);
+        parent.add(pivot);
+        const rotX = cz < 0 ? Math.PI/6 : -Math.PI/6;
+        interactiveWindows.push({ mesh: pivot, type: 'awning', openRotX: rotX, openRotZ: 0 });
      } else {
         const sashX = cx + 0.01;
         addBox(0.02, glassBotH, paneInnerW, glassMat, cx, (glassBotB + glassBotT) / 2, pCenter, false, parent);
-        addBox(sw, sashH, sw, frameMat, sashX, sashCY, pCenter - paneInnerW / 2 + sw / 2, false, parent);
-        addBox(sw, sashH, sw, frameMat, sashX, sashCY, pCenter + paneInnerW / 2 - sw / 2, false, parent);
-        addBox(sw, sw, paneInnerW - sw * 2, frameMat, sashX, sashT - sw / 2, pCenter, false, parent);
-        addBox(sw, sw, paneInnerW - sw * 2, frameMat, sashX, sashB + sw / 2, pCenter, false, parent);
-        addBox(0.02, sashH - sw * 2, paneInnerW - sw * 2, glassMat, sashX, sashCY, pCenter, false, parent);
-        const handleMat = new THREE.MeshStandardMaterial({ color: 0x333333, metalness: 0.8, roughness: 0.2 });
-        addBox(0.04, 0.02, 0.12, handleMat, sashX + 0.03, sashB + sw / 2, pCenter, false, parent);
+        
+        const pivot = new THREE.Group();
+        pivot.position.set(sashX, sashT, pCenter);
+        addBox(sw, sashH, sw, frameMat, 0, -sashH/2, -paneInnerW/2 + sw/2, false, pivot);
+        addBox(sw, sashH, sw, frameMat, 0, -sashH/2, paneInnerW/2 - sw/2, false, pivot);
+        addBox(sw, sw, paneInnerW - sw*2, frameMat, 0, -sw/2, 0, false, pivot);
+        addBox(sw, sw, paneInnerW - sw*2, frameMat, 0, -sashH + sw/2, 0, false, pivot);
+        addBox(0.02, sashH - sw*2, paneInnerW - sw*2, glassMat, 0, -sashH/2, 0, false, pivot);
+        parent.add(pivot);
+        const rotZ = cx < 0 ? -Math.PI/6 : Math.PI/6;
+        interactiveWindows.push({ mesh: pivot, type: 'awning', openRotX: 0, openRotZ: rotZ });
      }
   }
 }
 
 function addVentBlocks(cx, cy, cz, w, h, facing = 'z', parent = scene) {
-  const vThick = 0.09; 
-  const vMat = new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 1.0, metalness: 0.0 }); 
-  
-  const blockSize = 0.2; 
-  const cols = Math.round(w / blockSize); 
-  const rows = Math.round(h / blockSize); 
-  const bw = w / cols;
-  const bh = h / rows;
-  const t = 0.04; 
+  const vThick = 0.09, vMat = new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 1.0, metalness: 0.0 }); 
+  const blockSize = 0.2, cols = Math.round(w / blockSize), rows = Math.round(h / blockSize), bw = w / cols, bh = h / rows, t = 0.04; 
 
   for (let r = 0; r <= rows; r++) {
     if (facing === 'z') addBox(w, t, vThick, vMat, cx, cy - h/2 + r * bh, cz, false, parent);
@@ -427,14 +587,9 @@ function addVentBlocks(cx, cy, cz, w, h, facing = 'z', parent = scene) {
     if (facing === 'z') addBox(t, h, vThick, vMat, cx - w/2 + c * bw, cy, cz, false, parent);
     else addBox(vThick, h, t, vMat, cx, cy, cz - w/2 + c * bw, false, parent);
   }
-
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      const by = cy - h/2 + bh/2 + r * bh;
-      const inW = bw * 0.45;
-      const inH = bh * 0.45;
-      const inT = 0.025; 
-      
+      const by = cy - h/2 + bh/2 + r * bh, inW = bw * 0.45, inH = bh * 0.45, inT = 0.025; 
       if (facing === 'z') {
         const bx = cx - w/2 + bw/2 + c * bw;
         addBox(inW, inT, vThick, vMat, bx, by + inH/2, cz, false, parent);
@@ -453,84 +608,107 @@ function addVentBlocks(cx, cy, cz, w, h, facing = 'z', parent = scene) {
 }
 
 function buildGlassBlockWall(cx, cy, cz, w, h, facing = 'z', parent = floor2Group) {
-  const gbThick = 0.08;
-  const gT = 0.015;
+  const gbThick = 0.08, gT = 0.015;
   if (facing === 'z') {
     addBox(w, h, gbThick, glassBlockMat, cx, cy + h/2, cz, false, parent);
     addBox(w, gT, gbThick + 0.01, groutMat, cx, cy + gT/2, cz, false, parent);
     addBox(w, gT, gbThick + 0.01, groutMat, cx, cy + h - gT/2, cz, false, parent);
     addBox(gT, h, gbThick + 0.01, groutMat, cx - w/2 + gT/2, cy + h/2, cz, false, parent);
     addBox(gT, h, gbThick + 0.01, groutMat, cx + w/2 - gT/2, cy + h/2, cz, false, parent);
-    
-    for(let y = cy + 0.2; y < cy + h; y += 0.2) {
-      addBox(w, gT, gbThick + 0.005, groutMat, cx, y, cz, false, parent);
-    }
-    for(let x = cx - w/2 + 0.2; x < cx + w/2; x += 0.2) {
-      addBox(gT, h, gbThick + 0.005, groutMat, x, cy + h/2, cz, false, parent);
-    }
+    for(let y = cy + 0.2; y < cy + h; y += 0.2) addBox(w, gT, gbThick + 0.005, groutMat, cx, y, cz, false, parent);
+    for(let x = cx - w/2 + 0.2; x < cx + w/2; x += 0.2) addBox(gT, h, gbThick + 0.005, groutMat, x, cy + h/2, cz, false, parent);
   } else {
     addBox(gbThick, h, w, glassBlockMat, cx, cy + h/2, cz, false, parent);
     addBox(gbThick + 0.01, gT, w, groutMat, cx, cy + gT/2, cz, false, parent);
     addBox(gbThick + 0.01, gT, w, groutMat, cx, cy + h - gT/2, cz, false, parent);
     addBox(gbThick + 0.01, h, gT, groutMat, cx, cy + h/2, cz - w/2 + gT/2, false, parent);
     addBox(gbThick + 0.01, h, gT, groutMat, cx, cy + h/2, cz + w/2 - gT/2, false, parent);
-    
-    for(let y = cy + 0.2; y < cy + h; y += 0.2) {
-      addBox(gbThick + 0.005, gT, w, groutMat, cx, y, cz, false, parent);
-    }
-    for(let z = cz - w/2 + 0.2; z < cz + w/2; z += 0.2) {
-      addBox(gbThick + 0.005, h, gT, groutMat, cx, cy + h/2, z, false, parent);
-    }
+    for(let y = cy + 0.2; y < cy + h; y += 0.2) addBox(gbThick + 0.005, gT, w, groutMat, cx, y, cz, false, parent);
+    for(let z = cz - w/2 + 0.2; z < cz + w/2; z += 0.2) addBox(gbThick + 0.005, h, gT, groutMat, cx, cy + h/2, z, false, parent);
   }
 }
  
+// พื้นห้องโถงหลัก 1
 addBox(W, WALL_T, L, floorMat, 0, 0, 0, true);
 
+// ทางเดินรอบบ้าน
 const walkMat = new THREE.MeshStandardMaterial({ color: 0x666b70, roughness: 1.0 });
 addBox(14.0, 0.02, 1.0, walkMat, -4.0, 0.01, 5.0, false);
 addBox(1.0, 0.02, 9.0, walkMat, 2.5, 0.01, 0.0, false);
 addBox(1.0, 0.02, 10.0, walkMat, -10.5, 0.01, -0.5, false);
 addBox(14.0, 0.02, 1.0, walkMat, -4.0, 0.01, -5.0, false);
-
 const deckMat = new THREE.MeshStandardMaterial({ color: 0x4a3b2c, roughness: 0.9 });
 addBox(4.0, 0.05, 5.0, deckMat, 4.5, 0.025, -2.0, false);
-
+ 
+// ขยับหน้าต่าง 4 บาน (หลังบ้าน) ให้อยู่ตรงกลาง (X = 0)
 const WZ = -L/2;
 const winW = 1.0, winH = 1.4, winBot = 0.9, winTop = winBot + winH;
-
-addBox(0.1, FL2, WALL_T, wallMat, -2.95, FL2/2, WZ, true); 
-addBox(0.8, FL2, WALL_T, wallMat, -2.5, FL2/2, WZ, true); 
+addBox(0.46, FL2, WALL_T, wallMat, -1.77, FL2/2, WZ, true); 
+addBox(0.46, FL2, WALL_T, wallMat, 1.77, FL2/2, WZ, true); 
 addBox(0.9, H - FL2, WALL_T, wallMat, -2.55, FL2 + (H - FL2)/2, WZ, true, floor2Group); 
+addBox(3.08, tallWinBot, WALL_T, wallMat, 0, tallWinBot/2, WZ, true); 
+addBox(3.08, FL2 - tallWinTop, WALL_T, wallMat, 0, tallWinTop + (FL2 - tallWinTop)/2, WZ, true); 
+addTallWindowGroup(0, WZ, 4, 'z', 0); 
 
-addBox(0.14, FL2, WALL_T, wallMat, -2.03, FL2/2, WZ, true); 
-addBox(0.88, FL2, WALL_T, wallMat, 1.56, FL2/2, WZ, true); 
-addBox(3.08, tallWinBot, WALL_T, wallMat, -0.42, tallWinBot/2, WZ, true); 
-addBox(3.08, FL2 - tallWinTop, WALL_T, wallMat, -0.42, tallWinTop + (FL2 - tallWinTop)/2, WZ, true); 
+// [MODIFIED] เปลี่ยนผนังบล็อกแก้วเหนือโต๊ะกินข้าวชั้น 2 เป็นผนังปูน + หน้าต่างบานกระทุ้ง 2x1 ม.
+const aw2W = 2.0, aw2H = 1.0, aw2Z = WZ, aw2X = 0, aw2Y = FL2 + 1.55;
 
-buildGlassBlockWall(-0.05, FL2, WZ, 4.1, H - FL2, 'z');
-addTallWindowGroup(-0.42, WZ, 4, 'z', 0); 
+// ผนังบล็อกแก้วด้านข้าง ซ้าย-ขวา
+buildGlassBlockWall(-1.5, FL2, aw2Z, 1.0, H - FL2, 'z', floor2Group);
+buildGlassBlockWall(1.5, FL2, aw2Z, 1.0, H - FL2, 'z', floor2Group);
+// ผนังปูนด้านล่างและบนหน้าต่าง
+addBox(aw2W, 1.05, WALL_T, wallMat, aw2X, FL2 + 0.525, aw2Z, true, floor2Group);
+addBox(aw2W, 1.05, WALL_T, wallMat, aw2X, FL2 + 2.575, aw2Z, true, floor2Group);
+
+// กรอบหน้าต่าง (ขอบดำ)
+const winFw2 = 0.04;
+addBox(aw2W, winFw2, WALL_T + 0.04, frameMat, aw2X, aw2Y + aw2H/2 - winFw2/2, aw2Z, false, floor2Group);
+addBox(aw2W, winFw2, WALL_T + 0.04, frameMat, aw2X, aw2Y - aw2H/2 + winFw2/2, aw2Z, false, floor2Group);
+addBox(winFw2, aw2H - winFw2*2, WALL_T + 0.04, frameMat, aw2X - aw2W/2 + winFw2/2, aw2Y, aw2Z, false, floor2Group);
+addBox(winFw2, aw2H - winFw2*2, WALL_T + 0.04, frameMat, aw2X + aw2W/2 - winFw2/2, aw2Y, aw2Z, false, floor2Group);
+addBox(winFw2, aw2H - winFw2*2, WALL_T + 0.04, frameMat, aw2X, aw2Y, aw2Z, false, floor2Group);
+
+// บานกระจกแบบกระทุ้ง (2 บานย่อย)
+const paneW2 = (aw2W - winFw2*3) / 2;
+const paneH2 = aw2H - winFw2*2;
+const p1X = aw2X - aw2W/2 + winFw2 + paneW2/2;
+const p2X = aw2X + aw2W/2 - winFw2 - paneW2/2;
+
+function addAwningSashZ(cx, cy, cz, pW, pH, rotX, parent) {
+    const pivot = new THREE.Group();
+    pivot.position.set(cx, cy + pH/2, cz + 0.01); 
+    
+    const sw = 0.04;
+    addBox(sw, pH, sw, frameMat, -pW/2 + sw/2, -pH/2, 0, false, pivot);
+    addBox(sw, pH, sw, frameMat, pW/2 - sw/2, -pH/2, 0, false, pivot);
+    addBox(pW - sw*2, sw, sw, frameMat, 0, -sw/2, 0, false, pivot);
+    addBox(pW - sw*2, sw, sw, frameMat, 0, -pH + sw/2, 0, false, pivot);
+    addBox(pW - sw*2, pH - sw*2, 0.02, glassMat, 0, -pH/2, 0, false, pivot);
+    
+    parent.add(pivot);
+    interactiveWindows.push({ mesh: pivot, type: 'awning', openRotX: rotX, openRotZ: 0 });
+}
+
+addAwningSashZ(p1X, aw2Y, aw2Z, paneW2, paneH2, Math.PI/6, floor2Group);
+addAwningSashZ(p2X, aw2Y, aw2Z, paneW2, paneH2, Math.PI/6, floor2Group);
 
 const fw = 0.05;
-
 addBox(WALL_T, FL2, 4.5, wallMat, -W/2, FL2/2, 2.25, true); 
 addBox(WALL_T, H - FL2, 4.5, wallMat, -W/2, FL2 + (H - FL2)/2, 2.25, true, floor2Group); 
  
 const doorH = 2.0; 
 const doorZ = -0.75;
  
+// ห้อง 2 (โถงบันไดและห้องนอนชั้นล่าง/บน)
 const R2X = -W/2 - W/2; 
 addBox(W, WALL_T, L, floorMat, R2X, 0, 0, true); 
- 
 const fl2Mat = new THREE.MeshStandardMaterial({ color: 0x2a2e38, roughness: 0.7 });
-
 addBox(W, 0.18, 6.0, fl2Mat, R2X, FL2, 1.5, true, floor2Group);
 addBox(1.0, 0.18, 3.0, fl2Mat, -5.5, FL2, -3.0, true, floor2Group);
 addBox(1.0, 0.18, 3.0, fl2Mat, -2.5, FL2, -3.0, true, floor2Group);
 
 const stairMat = new THREE.MeshStandardMaterial({ color: 0x8a7a6a, roughness: 0.8 });
-const railMat = new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 0.4, metalness: 0.6 }); 
 const whiteRailMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.6, metalness: 0.1 }); 
-
 addBox(2.0, 0.155, 1.0, stairMat, -4.0, 1.55 - 0.0775, -4.0, false);
 for (let i = 0; i < 10; i++) {
   addBox(1.0, 0.155, 0.2, stairMat, -3.5, 0.0775 + i * 0.155, -1.6 - i * 0.2, false);
@@ -538,41 +716,35 @@ for (let i = 0; i < 10; i++) {
 }
 addBox(0.04, FL2, 2.0, wallMat, -4.0, FL2/2, -2.5, true); 
 addBox(0.04, 0.9, 2.0, wallMat, -4.0, FL2 + 0.45, -2.5, true, floor2Group); 
-
 addBox(WALL_T, FL2, 3.0, wallMat, -3.0, FL2/2, -3.0, true); 
 addBox(WALL_T, H - FL2, 3.0, wallMat, -3.0, FL2 + (H - FL2)/2, -3.0, true, floor2Group); 
 
-addBox(1.0, 0.9, 0.04, whiteRailMat, -3.5, FL2 + 0.45, -1.5, false, floor2Group); 
-addBox(0.04, 0.9, L, whiteRailMat, -W/2 + 0.04, FL2 + 0.09 + 0.45, 0, false, floor2Group); 
-for (let i = 0; i < 6; i++) {
-  addBox(0.04, 0.9, 0.04, whiteRailMat, -W/2 + 0.04, FL2 + 0.09 + 0.45, -L/2 + 0.5 + i * (L - 1) / 5, false, floor2Group); 
-}
+const inRailY = FL2 + 0.59; 
+addGlassRailing(-3.5, inRailY, -1.5, 1.0, 1.0, 'z', floor2Group); 
+addGlassRailing(-W/2 + 0.04, inRailY, -2.25, 4.5, 1.0, 'x', floor2Group);
+
 
 const upLight1 = new THREE.PointLight(0xffe0b0, 2.0, 6); upLight1.position.set(R2X, FL2 + 2.0, -L/4); floor2Group.add(upLight1);
 const upLight2 = new THREE.PointLight(0xffe0b0, 2.0, 6); upLight2.position.set(R2X, FL2 + 2.0, L/4); floor2Group.add(upLight2);
 const downLight1 = new THREE.PointLight(0xffd090, 2.0, 6); downLight1.position.set(R2X, FL2 - 1.0, -L/4); scene.add(downLight1);
 const downLight2 = new THREE.PointLight(0xffd090, 2.0, 6); downLight2.position.set(R2X, FL2 - 1.0, L/4); scene.add(downLight2);
  
+// ห้อง 3 (ซ้ายสุด)
 const R3X = R2X - W; 
 addBox(W, WALL_T, L, floorMat, R3X, 0, 0, true); 
 addBox(WALL_T, FL2, 4.5, wallMat, R2X - W/2, FL2/2, 2.25, true); 
 addBox(WALL_T, H - FL2, 4.5, wallMat, R2X - W/2, FL2 + (H - FL2)/2, 2.25, true, floor2Group); 
 addBox(W, 0.18, L, new THREE.MeshStandardMaterial({ color: 0x2a2e38, roughness: 0.7 }), R3X, FL2, 0, true, floor2Group); 
- 
 const upLight3 = new THREE.PointLight(0xffe0b0, 2.0, 6); upLight3.position.set(R3X, FL2 + 2.0, -L/4); floor2Group.add(upLight3);
 const upLight4 = new THREE.PointLight(0xffe0b0, 2.0, 6); upLight4.position.set(R3X, FL2 + 2.0, L/4); floor2Group.add(upLight4);
 const downLight3 = new THREE.PointLight(0xffd090, 2.0, 6); downLight3.position.set(R3X, FL2 - 1.0, -L/4); scene.add(downLight3);
 const downLight4 = new THREE.PointLight(0xffd090, 2.0, 6); downLight4.position.set(R3X, FL2 - 1.0, L/4); scene.add(downLight4);
 
-const outerWallX = R3X - W/2; 
-const obX = outerWallX, obZ = 2.25; 
-const sideWallLen = 4.5;
-const sideWinW = 3.08;
-const sideW = (sideWallLen - sideWinW) / 2; 
+const outerWallX = R3X - W/2, obX = outerWallX, obZ = 2.25; 
+const sideWallLen = 4.5, sideWinW = 3.08, sideW = (sideWallLen - sideWinW) / 2; 
 
 [0, FL2].forEach(yBase => {
-  const pGrp = yBase === 0 ? scene : floor2Group;
-  const rH = yBase === 0 ? FL2 : (H - FL2);
+  const pGrp = yBase === 0 ? scene : floor2Group, rH = yBase === 0 ? FL2 : (H - FL2);
   addBox(WALL_T, tallWinBot, sideWallLen, wallMat, obX, yBase + tallWinBot/2, obZ, true, pGrp);
   addBox(WALL_T, rH - tallWinTop, sideWallLen, wallMat, obX, yBase + tallWinTop + (rH - tallWinTop)/2, obZ, true, pGrp);
   addBox(WALL_T, tallWinH, sideW, wallMat, obX, yBase + tallWinBot + tallWinH/2, 0 + sideW/2, true, pGrp);
@@ -586,13 +758,59 @@ addBox(WALL_T, FL2 - doorH, 0.8, wallMat, outerWallX, doorH + (FL2 - doorH)/2, d
 addBox(WALL_T + 0.06, doorH, 0.05, doorMat, outerWallX, doorH/2, doorZ + 0.4 - 0.025, false);
 addBox(WALL_T + 0.06, doorH, 0.05, doorMat, outerWallX, doorH/2, doorZ - 0.4 + 0.025, false);
 addBox(WALL_T + 0.06, 0.05, 0.8, doorMat, outerWallX, doorH - 0.025, doorZ, false);
+
+addSwingDoor(0.04, doorH - 0.05, 0.7, doorMat, outerWallX, doorH/2, doorZ, '-z', -Math.PI/2, new THREE.Vector3(outerWallX, 0, doorZ), scene);
+
 addBox(WALL_T, H - FL2, 1.5, wallMat, -10.0, FL2 + (H - FL2)/2, -0.75, true, floor2Group);
 
-buildGlassBlockWall(W/2, FL2, 0, L, H - FL2, 'x');
+// เปลี่ยนเฉพาะผนังเหนือประตูให้เป็นปูน โดยแบ่งบล็อกแก้วเป็น 2 ช่วง
+// ช่วงที่ 1: บล็อกแก้วด้านซ้าย (ยาว 5.75ม.)
+buildGlassBlockWall(W/2, FL2, -1.625, 5.75, H - FL2, 'x', floor2Group); 
+// ช่วงที่ 2: บล็อกแก้วด้านขวา (ยาว 1.25ม.)
+buildGlassBlockWall(W/2, FL2, 3.875, 1.25, H - FL2, 'x', floor2Group); 
 
-const pillarSize = 0.3; 
-const pGridZ = [4.5, 0.0, -4.5];
+// ผนังปูน 2 เมตร เหนือประตู + หน้าต่างบานกระทุ้ง 2x1 ม. แบ่งครึ่ง
+const awW = 2.0, awH = 1.0, awZ = 2.25, awX = W/2, awY = FL2 + 1.55;
 
+// ผนังปูนด้านล่างและบนหน้าต่างบานกระทุ้ง
+addBox(WALL_T, 1.05, awW, wallMat, awX, FL2 + 0.525, awZ, true, floor2Group);
+addBox(WALL_T, 1.05, awW, wallMat, awX, FL2 + 2.575, awZ, true, floor2Group);
+
+// กรอบหน้าต่าง (ขอบดำ)
+const winFw = 0.04;
+addBox(WALL_T + 0.04, winFw, awW, frameMat, awX, awY + awH/2 - winFw/2, awZ, false, floor2Group);
+addBox(WALL_T + 0.04, winFw, awW, frameMat, awX, awY - awH/2 + winFw/2, awZ, false, floor2Group);
+addBox(WALL_T + 0.04, awH - winFw*2, winFw, frameMat, awX, awY, awZ - awW/2 + winFw/2, false, floor2Group); 
+addBox(WALL_T + 0.04, awH - winFw*2, winFw, frameMat, awX, awY, awZ + awW/2 - winFw/2, false, floor2Group); 
+addBox(WALL_T + 0.04, awH - winFw*2, winFw, frameMat, awX, awY, awZ, false, floor2Group); 
+
+// บานกระจกแบบกระทุ้ง (2 บานย่อย)
+const paneW = (awW - winFw*3) / 2;
+const paneH = awH - winFw*2;
+const p1Z = awZ - awW/2 + winFw + paneW/2;
+const p2Z = awZ + awW/2 - winFw - paneW/2;
+
+function addAwningSashX(cx, cy, cz, pW, pH, rotZ, parent) {
+    const pivot = new THREE.Group();
+    pivot.position.set(cx + 0.01, cy + pH/2, cz);
+    
+    const sw = 0.04;
+    addBox(sw, pH, sw, frameMat, 0, -pH/2, -pW/2 + sw/2, false, pivot);
+    addBox(sw, pH, sw, frameMat, 0, -pH/2, pW/2 - sw/2, false, pivot);
+    addBox(sw, sw, pW - sw*2, frameMat, 0, -sw/2, 0, false, pivot);
+    addBox(sw, sw, pW - sw*2, frameMat, 0, -pH + sw/2, 0, false, pivot);
+    addBox(0.02, pH - sw*2, pW - sw*2, glassMat, 0, -pH/2, 0, false, pivot);
+    
+    parent.add(pivot);
+    interactiveWindows.push({ mesh: pivot, type: 'awning', openRotX: 0, openRotZ: rotZ });
+}
+
+addAwningSashX(awX, awY, p1Z, paneW, paneH, Math.PI/6, floor2Group);
+addAwningSashX(awX, awY, p2Z, paneW, paneH, Math.PI/6, floor2Group);
+
+
+// เสาและคาน
+const pillarSize = 0.3, pGridZ = [4.5, 0.0, -4.5];
 pGridZ.forEach(pz => {
   let currentGridX = [2.0, -2.0, -6.0, -10.0];
   if (pz === -4.5) currentGridX = [2.0, -2.0, -5.0, -7.5, -10.0];
@@ -602,12 +820,15 @@ pGridZ.forEach(pz => {
   });
 });
 
-const beamY1 = FL2 - pillarSize/2; 
-const beamY2 = H - pillarSize/2;   
-
+const beamY1 = FL2 - pillarSize/2, beamY2 = H - pillarSize/2;   
 pGridZ.forEach(pz => {
-  addBox(12.0 + pillarSize, pillarSize, pillarSize, pillarMat, -4.0, beamY1, pz, true, scene);
-  addBox(12.0 + pillarSize, pillarSize, pillarSize, pillarMat, -4.0, beamY2, pz, true, floor2Group);
+  if (pz === 0.0) {
+    addBox(8.0 + pillarSize, pillarSize, pillarSize, pillarMat, -6.0, beamY1, pz, true, scene);
+    addBox(12.0 + pillarSize, pillarSize, pillarSize, pillarMat, -4.0, beamY2, pz, true, floor2Group);
+  } else {
+    addBox(12.0 + pillarSize, pillarSize, pillarSize, pillarMat, -4.0, beamY1, pz, true, scene);
+    addBox(12.0 + pillarSize, pillarSize, pillarSize, pillarMat, -4.0, beamY2, pz, true, floor2Group);
+  }
 });
 [2.0, -2.0, -10.0].forEach(px => {
   addBox(pillarSize, pillarSize, 9.0 + pillarSize, pillarMat, px, beamY1, 0, true, scene);
@@ -620,18 +841,27 @@ addBox(pillarSize, pillarSize, 4.5 + pillarSize, pillarMat, -6.0, beamY2, 2.25, 
   addBox(pillarSize, pillarSize, 4.5 + pillarSize, pillarMat, px, beamY2, -2.25, true, floor2Group);
 });
 
+addVentBlocks(-3.0, FL2/2, -3.0, 3.0, FL2, 'x', scene); 
+addVentBlocks(-3.0, FL2 + (H - FL2)/2, -3.0, 3.0, H - FL2, 'x', floor2Group);
+
 addBox(WALL_T, FL2, 3.0, wallMat, -5.0, FL2/2, -3.0, true);
 addBox(WALL_T, H - FL2, 3.0, wallMat, -5.0, FL2 + (H - FL2)/2, -3.0, true, floor2Group);
 addBox(WALL_T, FL2, 3.0, wallMat, -7.5, FL2/2, -3.0, true);
 addBox(WALL_T, H - FL2, 3.0, wallMat, -7.5, FL2 + (H - FL2)/2, -3.0, true, floor2Group);
 
 const bwZ = -4.5;
-addBox(2.0, FL2, WALL_T, wallMat, -4.0, FL2/2, bwZ, true); 
+addBox(4.0, FL2, WALL_T, wallMat, -4.0, FL2/2, bwZ, true); 
+addBox(1.5, FL2, WALL_T, wallMat, -6.75, FL2/2, bwZ, true); 
+
 addBox(2.0, tallWinBot, WALL_T, wallMat, -4.0, FL2 + tallWinBot/2, bwZ, true, floor2Group); 
 addBox(2.0, (H - FL2) - tallWinTop, WALL_T, wallMat, -4.0, FL2 + tallWinTop + ((H - FL2) - tallWinTop)/2, bwZ, true, floor2Group); 
 addBox(0.6, tallWinH, WALL_T, wallMat, -4.7, FL2 + tallWinBot + tallWinH/2, bwZ, true, floor2Group); 
 addBox(0.6, tallWinH, WALL_T, wallMat, -3.3, FL2 + tallWinBot + tallWinH/2, bwZ, true, floor2Group); 
 createTallAwningWindow(-4.0, bwZ, floor2Group); 
+
+addBox(1.0, H - FL2, WALL_T, wallMat, -2.5, FL2 + (H-FL2)/2, bwZ, true, floor2Group);
+addBox(1.0, H - FL2, WALL_T, wallMat, -5.5, FL2 + (H-FL2)/2, bwZ, true, floor2Group);
+addBox(1.5, H - FL2, WALL_T, wallMat, -6.75, FL2 + (H-FL2)/2, bwZ, true, floor2Group);
 
 const bathW = 2.5, bathCX = -6.25, ventW = bathW, ventH = 0.4; 
 addBox(ventW, FL2 - ventH, WALL_T, wallMat, bathCX, (FL2 - ventH)/2, bwZ, true); 
@@ -643,67 +873,92 @@ const unifiedFloorMat = new THREE.MeshStandardMaterial({ color: 0x4a3018, roughn
 addBox(W - 0.02, 0.02, L - 0.02, unifiedFloorMat, 0, 0.06, 0, false);
 addBox(1.0, 0.02, 4.48, unifiedFloorMat, -2.5, 0.06, -2.25, false);
 
-function addBedroom(x, z, y, isFlipped, primaryColor, isGroundFloor = false, parent = scene) {
+function addRoomFloor(x, z, y, isGroundFloor, parent = scene) {
   const woodFloorMat = new THREE.MeshStandardMaterial({ color: isGroundFloor ? 0x8a4a4a : 0x705a48, roughness: 0.9, metalness: 0.05 });
   addBox(3.92, 0.02, 4.42, woodFloorMat, x, y + 0.1, z, false, parent);
 }
-addBedroom(-4, 2.25, FL2, true, 0x4a6a8a, false, floor2Group); 
-addBedroom(-8, 2.25, FL2, false, 0x557a66, false, floor2Group); 
-addBedroom(-4, 2.25, 0, true, 0x8a4a4a, true, scene);
+addRoomFloor(-4, 2.25, FL2, false, floor2Group); 
+addRoomFloor(-8, 2.25, FL2, false, floor2Group); 
+addRoomFloor(-4, 2.25, 0, true, scene); 
+addRoomFloor(-8, 2.25, 0, true, scene); 
+
+// ฝ้าเพดาน (ระดับใต้คาน)
+const ceilY1 = FL2 - 0.3; // 2.8m
+const ceilY2 = H - 0.3;   // 5.9m
+
+// ฝ้าชั้น 1 
+addBox(5.0, 0.02, 9.0, ceilMat, -7.5, ceilY1 - 0.01, 0, false, floor2Group); // โซนซ้าย
+addBox(3.0, 0.02, 6.0, ceilMat, -3.5, ceilY1 - 0.01, 1.5, false, floor2Group); // โซนหน้าบันได
+addBox(1.0, 0.02, 3.0, ceilMat, -2.5, ceilY1 - 0.01, -3.0, false, floor2Group); // โซนข้างบันได
+
+// แผงปิดขอบฝ้า (Fascia) หน้าบันได
+const fasciaH = 0.3;
+const fasciaY = FL2 - fasciaH / 2;
+addBox(2.0, fasciaH, 0.02, ceilMat, -4.0, fasciaY, -1.5, false, floor2Group); // ปิดแหว่งโถงบันไดชั้น 1
+
+// ฝ้าชั้น 2
+addBox(12.0, 0.02, 9.0, ceilMat, -4.0, ceilY2 - 0.01, 0, false, floor2Group); 
 
 const bathDoorW = 0.8, bathDoorH = 2.0;
 addBox(1.5, FL2, WALL_T, wallMat, -6.75, FL2/2, -1.5, true); 
 addBox(0.2, FL2, WALL_T, wallMat, -5.1, FL2/2, -1.5, true); 
 addBox(bathDoorW, FL2 - bathDoorH, WALL_T, wallMat, -5.6, bathDoorH + (FL2 - bathDoorH)/2, -1.5, false); 
-addBox(0.05, bathDoorH, WALL_T+0.04, doorMat, -6.0 + 0.025, bathDoorH/2, -1.5, false);
-addBox(0.05, bathDoorH, WALL_T+0.04, doorMat, -5.2 - 0.025, bathDoorH/2, -1.5, false);
-addBox(bathDoorW, 0.05, WALL_T+0.04, doorMat, -5.6, bathDoorH - 0.025, -1.5, false);
+addBox(0.05, bathDoorH, WALL_T+0.04, bathDoorMat, -6.0 + 0.025, bathDoorH/2, -1.5, false);
+addBox(0.05, bathDoorH, WALL_T+0.04, bathDoorMat, -5.2 - 0.025, bathDoorH/2, -1.5, false);
+addBox(bathDoorW, 0.05, WALL_T+0.04, bathDoorMat, -5.6, bathDoorH - 0.025, -1.5, false);
+addSwingDoor(bathDoorW - 0.1, bathDoorH - 0.05, 0.04, bathDoorMat, -5.6, bathDoorH/2, -1.5, '-x', Math.PI/2, new THREE.Vector3(-5.6, 0, -1.5), scene);
+
 addBox(1.5, H - FL2, WALL_T, wallMat, -6.75, FL2 + (H-FL2)/2, -1.5, true, floor2Group);
 addBox(0.2, H - FL2, WALL_T, wallMat, -5.1, FL2 + (H-FL2)/2, -1.5, true, floor2Group);
 addBox(bathDoorW, (H - FL2) - bathDoorH, WALL_T, wallMat, -5.6, FL2 + bathDoorH + ((H-FL2) - bathDoorH)/2, -1.5, false, floor2Group);
-addBox(0.05, bathDoorH, WALL_T+0.04, doorMat, -6.0 + 0.025, FL2 + bathDoorH/2, -1.5, false, floor2Group);
-addBox(0.05, bathDoorH, WALL_T+0.04, doorMat, -5.2 - 0.025, FL2 + bathDoorH/2, -1.5, false, floor2Group);
-addBox(bathDoorW, 0.05, WALL_T+0.04, doorMat, -5.6, FL2 + bathDoorH - 0.025, -1.5, false, floor2Group);
+addBox(0.05, bathDoorH, WALL_T+0.04, bathDoorMat, -6.0 + 0.025, FL2 + bathDoorH/2, -1.5, false, floor2Group);
+addBox(0.05, bathDoorH, WALL_T+0.04, bathDoorMat, -5.2 - 0.025, FL2 + bathDoorH/2, -1.5, false, floor2Group);
+addBox(bathDoorW, 0.05, WALL_T+0.04, bathDoorMat, -5.6, FL2 + bathDoorH - 0.025, -1.5, false, floor2Group);
+addSwingDoor(bathDoorW - 0.1, bathDoorH - 0.05, 0.04, bathDoorMat, -5.6, FL2 + bathDoorH/2, -1.5, '-x', Math.PI/2, new THREE.Vector3(-5.6, FL2, -1.5), floor2Group);
 
 const balconyFloorMat = new THREE.MeshStandardMaterial({ color: 0x4a3b2c, roughness: 0.9, metalness: 0.0 });
 addBox(2.46, 0.02, 2.96, balconyFloorMat, -8.75, FL2 + 0.09, -3.0, false, floor2Group);
-const gdW = 1.5, gdH = 2.0, gdX = -8.75, gdZ = -1.5, gdY = FL2 + gdH/2;
-addBox(gdW, 0.05, 0.1, doorMat, gdX, FL2 + 0.025, gdZ, false, floor2Group);
-addBox(gdW, 0.05, 0.1, doorMat, gdX, FL2 + gdH - 0.025, gdZ, false, floor2Group);
-addBox(0.05, gdH, 0.1, doorMat, gdX - gdW/2 + 0.025, gdY, gdZ, false, floor2Group);
-addBox(0.05, gdH, 0.1, doorMat, gdX + gdW/2 - 0.025, gdY, gdZ, false, floor2Group);
-addBox(gdW/2 - 0.02, gdH - 0.1, 0.02, glassMat, gdX - gdW/4, gdY, gdZ + 0.02, false, floor2Group);
-addBox(gdW/2 - 0.02, gdH - 0.1, 0.02, glassMat, gdX + gdW/4, gdY, gdZ - 0.02, false, floor2Group);
+
+// ---- ประตูระเบียง (เปลี่ยนเป็น 2 เมตร ฟิกซ์ 1 เลื่อน 1) ----
+const gdW = 2.0, gdH = 2.0, gdX = -8.75, gdZ = -1.5, gdY = FL2 + gdH/2;
+addBox(gdW, 0.05, 0.1, frameMat, gdX, FL2 + 0.025, gdZ, false, floor2Group);
+addBox(gdW, 0.05, 0.1, frameMat, gdX, FL2 + gdH - 0.025, gdZ, false, floor2Group);
+addBox(0.05, gdH, 0.1, frameMat, gdX - gdW/2 + 0.025, gdY, gdZ, false, floor2Group);
+addBox(0.05, gdH, 0.1, frameMat, gdX + gdW/2 - 0.025, gdY, gdZ, false, floor2Group);
+
+const fixDoorBalcony = addBox(gdW/2 - 0.02, gdH - 0.05, 0.02, glassMat, gdX - gdW/4, gdY, gdZ + 0.02, false, floor2Group); 
+const slDoorBalcony = addBox(gdW/2 - 0.02, gdH - 0.05, 0.02, glassMat, gdX + gdW/4, gdY, gdZ - 0.02, false, floor2Group); 
+
+interactiveDoors.push({ 
+    mesh: slDoorBalcony, type: 'slide', 
+    closedPos: slDoorBalcony.position.clone(), 
+    openPos: slDoorBalcony.position.clone().add(new THREE.Vector3(-gdW/2 + 0.05, 0, 0)),
+    trigger: new THREE.Vector3(gdX, FL2, gdZ), radius: 2.5, isOpen: false 
+});
 
 addBox(gdW, (H - FL2) - gdH, WALL_T, wallMat, gdX, FL2 + gdH + ((H - FL2) - gdH)/2, gdZ, true, floor2Group); 
-addBox(0.5, H - FL2, WALL_T, wallMat, -9.75, FL2 + (H - FL2)/2, gdZ, true, floor2Group); 
-addBox(0.5, H - FL2, WALL_T, wallMat, -7.75, FL2 + (H - FL2)/2, gdZ, true, floor2Group); 
+addBox(0.25, H - FL2, WALL_T, wallMat, -9.875, FL2 + (H - FL2)/2, gdZ, true, floor2Group); 
+addBox(0.25, H - FL2, WALL_T, wallMat, -7.625, FL2 + (H - FL2)/2, gdZ, true, floor2Group); 
+
 
 const nbX = -4.0, nbW = 12.0, nbZ = -5.0, nbD = 1.0, nbY = FL2 + 0.09; 
 addBox(nbW, 0.02, nbD, balconyFloorMat, nbX, nbY, nbZ, false, floor2Group);
 
-const railH = 1.0;
-const railY = FL2 + 0.1 + railH/2; 
-
+const railH = 1.0, railY = FL2 + 0.1 + railH/2; 
 function addGlassRailing(cx, cy, cz, w, h, facing, parent=floor2Group) {
   const frameT = 0.05;
   if (facing === 'z') {
       addBox(w, h, 0.02, glassMat, cx, cy, cz, false, parent);
       addBox(w, frameT, frameT, frameMat, cx, cy + h/2, cz, false, parent);
       addBox(w, frameT, frameT, frameMat, cx, cy - h/2, cz, false, parent);
-      for(let i=0; i<=Math.floor(w); i++){
-          addBox(frameT, h, frameT, frameMat, cx - w/2 + i*(w/Math.floor(w)), cy, cz, false, parent);
-      }
+      for(let i=0; i<=Math.floor(w); i++) addBox(frameT, h, frameT, frameMat, cx - w/2 + i*(w/Math.floor(w)), cy, cz, false, parent);
   } else {
       addBox(0.02, h, w, glassMat, cx, cy, cz, false, parent);
       addBox(frameT, frameT, w, frameMat, cx, cy + h/2, cz, false, parent);
       addBox(frameT, frameT, w, frameMat, cx, cy - h/2, cz, false, parent);
-      for(let i=0; i<=Math.floor(w); i++){
-          addBox(frameT, h, frameT, frameMat, cx, cy, cz - w/2 + i*(w/Math.floor(w)), false, parent);
-      }
+      for(let i=0; i<=Math.floor(w); i++) addBox(frameT, h, frameT, frameMat, cx, cy, cz - w/2 + i*(w/Math.floor(w)), false, parent);
   }
 }
-
 addGlassRailing(-10.0, railY, -3.5, 4.0, railH, 'x'); 
 addGlassRailing(-9.25, railY, -5.5, 1.5, railH, 'z'); 
 addGlassRailing(-2.75, railY, -5.5, 9.5, railH, 'z'); 
@@ -713,77 +968,42 @@ addVentBlocks(-8.0, FL2/2, -5.5, 1.0, FL2, 'z', scene);
 const topVentH = (H - FL2) - 0.2; 
 addVentBlocks(-8.0, FL2 + topVentH/2, -5.5, 1.0, topVentH, 'z', floor2Group);
 
-const awW = 1.0, awL = 10.0, awZ = -0.5, awTopY = 2.6, awBotY = 2.2, awCX = -10.0 - awW/2, awCY = (awTopY + awBotY)/2;
-const awGeo = new THREE.BoxGeometry(awW, 0.04, awL);
-const awMesh = new THREE.Mesh(awGeo, roofTopMat);
-awMesh.position.set(awCX, awCY, awZ);
-awMesh.rotation.z = Math.atan2(awTopY - awBotY, awW); 
-awMesh.castShadow = true;
-mainRoofGroup.add(awMesh);
-
-const awEdgeGeo = new THREE.BoxGeometry(0.04, 0.06, awL);
-const awEdgeMesh = new THREE.Mesh(awEdgeGeo, roofTopMat); 
-awEdgeMesh.position.set(-10.0 - awW, awBotY, awZ);
-const awLineEdges = new THREE.LineSegments(new THREE.EdgesGeometry(awEdgeGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 }));
-awEdgeMesh.add(awLineEdges);
+const awWTop = 1.0, awL = 10.0, awZTop = -0.5, awTopY = FL2, awBotY = FL2 - 0.4, awCX = -10.0 - awWTop/2, awCY = (awTopY + awBotY)/2;
+const awMesh = new THREE.Mesh(new THREE.BoxGeometry(awWTop, 0.04, awL), roofTopMat);
+awMesh.position.set(awCX, awCY, awZTop); awMesh.rotation.z = Math.atan2(awTopY - awBotY, awWTop); awMesh.castShadow = true; mainRoofGroup.add(awMesh);
+const awEdgeGeo = new THREE.BoxGeometry(0.04, 0.06, awL); const awEdgeMesh = new THREE.Mesh(awEdgeGeo, roofTopMat); 
+awEdgeMesh.position.set(-10.0 - awWTop, awBotY, awZTop);
+awEdgeMesh.add(new THREE.LineSegments(new THREE.EdgesGeometry(awEdgeGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 })));
 mainRoofGroup.add(awEdgeMesh);
-
-const poleR = 0.04, poleH = awBotY;
-const poleGeo = new THREE.CylinderGeometry(poleR, poleR, poleH, 16);
 for (let i = 0; i <= 4; i++) { 
-  const pZ = -5.5 + i * (10.0 / 4); 
-  const pole = new THREE.Mesh(poleGeo, frameMat);
-  pole.position.set(-10.0 - awW + 0.1, poleH/2, pZ);
-  pole.castShadow = true; mainRoofGroup.add(pole);
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, awBotY, 16), frameMat);
+  pole.position.set(-10.0 - awWTop + 0.1, awBotY/2, -5.5 + i * 2.5); pole.castShadow = true; mainRoofGroup.add(pole);
 }
 
 const roofPitchH = 1.2, roofHalfW = 4.5, roofOverhangX = 1.0, roofOverhangZ = 1.0; 
 const roofLengthX = 12.0 + roofOverhangX * 2, roofCX = -4.0; 
-
-const gableShape = new THREE.Shape();
-gableShape.moveTo(-roofHalfW, 0); gableShape.lineTo(roofHalfW, 0);
-gableShape.lineTo(0, roofPitchH); gableShape.lineTo(-roofHalfW, 0);
-
+const gableShape = new THREE.Shape(); gableShape.moveTo(-roofHalfW, 0); gableShape.lineTo(roofHalfW, 0); gableShape.lineTo(0, roofPitchH); gableShape.lineTo(-roofHalfW, 0);
 const gableGeo = new THREE.ExtrudeGeometry(gableShape, { depth: WALL_T, bevelEnabled: false });
-const gableRight = new THREE.Mesh(gableGeo, wallMat);
-gableRight.rotation.y = -Math.PI / 2; gableRight.position.set(2.0 + WALL_T/2, H, 0); 
-gableRight.castShadow = true; gableRight.receiveShadow = true;
-mainRoofGroup.add(gableRight);
+const gableRight = new THREE.Mesh(gableGeo, wallMat); gableRight.rotation.y = -Math.PI / 2; gableRight.position.set(2.0 + WALL_T/2, H, 0); gableRight.castShadow = true; gableRight.receiveShadow = true; mainRoofGroup.add(gableRight);
 gableRight.add(new THREE.LineSegments(new THREE.EdgesGeometry(gableGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 })));
-
-const gableLeft = new THREE.Mesh(gableGeo, wallMat);
-gableLeft.rotation.y = -Math.PI / 2; gableLeft.position.set(-10.0 + WALL_T/2, H, 0);
-gableLeft.castShadow = true; gableLeft.receiveShadow = true;
-mainRoofGroup.add(gableLeft);
+const gableLeft = new THREE.Mesh(gableGeo, wallMat); gableLeft.rotation.y = -Math.PI / 2; gableLeft.position.set(-10.0 + WALL_T/2, H, 0); gableLeft.castShadow = true; gableLeft.receiveShadow = true; mainRoofGroup.add(gableLeft);
 gableLeft.add(new THREE.LineSegments(new THREE.EdgesGeometry(gableGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 })));
 
-const louverGeo = new THREE.BoxGeometry(WALL_T + 0.02, 0.4, 0.8);
-const louverMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.9 });
+const louverGeo = new THREE.BoxGeometry(WALL_T + 0.02, 0.4, 0.8), louverMat = new THREE.MeshStandardMaterial({ color: 0x333333, roughness: 0.9 });
 const louverR = new THREE.Mesh(louverGeo, louverMat); louverR.position.set(2.0, H + 0.45, 0); mainRoofGroup.add(louverR);
 const louverL = new THREE.Mesh(louverGeo, louverMat); louverL.position.set(-10.0, H + 0.45, 0); mainRoofGroup.add(louverL);
 
-const roofTopThick = 0.15;
-const eaveHalfW = roofHalfW + roofOverhangZ, roofDrop = eaveHalfW * (roofPitchH / roofHalfW); 
-const roofPlaneW = Math.sqrt(eaveHalfW * eaveHalfW + roofDrop * roofDrop); 
-const roofAngle = Math.atan2(roofDrop, eaveHalfW), roofCY = H + roofPitchH - roofDrop / 2 + roofTopThick / 2; 
-
-const roofFrontGeo = new THREE.BoxGeometry(roofLengthX, roofTopThick, roofPlaneW);
-const roofFront = new THREE.Mesh(roofFrontGeo, roofTopMat);
+const roofTopThick = 0.15, eaveHalfW = roofHalfW + roofOverhangZ, roofDrop = eaveHalfW * (roofPitchH / roofHalfW); 
+const roofPlaneW = Math.sqrt(eaveHalfW * eaveHalfW + roofDrop * roofDrop), roofAngle = Math.atan2(roofDrop, eaveHalfW), roofCY = H + roofPitchH - roofDrop / 2 + roofTopThick / 2; 
+const roofFrontGeo = new THREE.BoxGeometry(roofLengthX, roofTopThick, roofPlaneW); const roofFront = new THREE.Mesh(roofFrontGeo, roofTopMat);
 roofFront.position.set(roofCX, roofCY, eaveHalfW / 2); roofFront.rotation.x = roofAngle; roofFront.castShadow = true;
-roofFront.add(new THREE.LineSegments(new THREE.EdgesGeometry(roofFrontGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 })));
-mainRoofGroup.add(roofFront);
-
-const roofBackGeo = new THREE.BoxGeometry(roofLengthX, roofTopThick, roofPlaneW);
-const roofBack = new THREE.Mesh(roofBackGeo, roofTopMat);
+roofFront.add(new THREE.LineSegments(new THREE.EdgesGeometry(roofFrontGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 }))); mainRoofGroup.add(roofFront);
+const roofBackGeo = new THREE.BoxGeometry(roofLengthX, roofTopThick, roofPlaneW); const roofBack = new THREE.Mesh(roofBackGeo, roofTopMat);
 roofBack.position.set(roofCX, roofCY, -eaveHalfW / 2); roofBack.rotation.x = -roofAngle; roofBack.castShadow = true;
-roofBack.add(new THREE.LineSegments(new THREE.EdgesGeometry(roofBackGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 })));
-mainRoofGroup.add(roofBack);
-
-const ridgeCapGeo = new THREE.BoxGeometry(roofLengthX, roofTopThick + 0.04, 0.3);
-const ridgeCap = new THREE.Mesh(ridgeCapGeo, roofTopMat);
+roofBack.add(new THREE.LineSegments(new THREE.EdgesGeometry(roofBackGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 }))); mainRoofGroup.add(roofBack);
+const ridgeCapGeo = new THREE.BoxGeometry(roofLengthX, roofTopThick + 0.04, 0.3); const ridgeCap = new THREE.Mesh(ridgeCapGeo, roofTopMat);
 ridgeCap.position.set(roofCX, H + roofPitchH + roofTopThick/2, 0);
-ridgeCap.add(new THREE.LineSegments(new THREE.EdgesGeometry(ridgeCapGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 })));
-mainRoofGroup.add(ridgeCap);
+ridgeCap.add(new THREE.LineSegments(new THREE.EdgesGeometry(ridgeCapGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 }))); mainRoofGroup.add(ridgeCap);
 
 const kitchenFloorMat = new THREE.MeshStandardMaterial({ color: 0xdaddd0, roughness: 0.9, metalness: 0.05 });
 addBox(2.46, 0.02, 2.96, kitchenFloorMat, -8.75, 0.01, -3.0, false); 
@@ -796,20 +1016,25 @@ addBox(0.75, FL2, WALL_T, wallMat, -9.625, FL2/2, kBackZ, true);
 addBox(0.75, FL2, WALL_T, wallMat, -7.875, FL2/2, kBackZ, true);
 addBox(kwW, FL2 - kwTop, WALL_T, wallMat, -8.75, kwTop + (FL2 - kwTop)/2, kBackZ, true);
 addBox(kwW, kwBot, WALL_T, wallMat, -8.75, kwBot/2, kBackZ, true);
-addBox(0.02, kwH - 0.08, kwW - 0.08, glassMat, kLeftX + 0.01, kwY, -2.5, false); 
-addBox(0.02, kwH - 0.08, kwW - 0.08, glassMat, kLeftX + 0.01, kwY, -3.5, false); 
-addBox(kwW - 0.08, kwH - 0.08, 0.02, glassMat, -8.75, kwY, kBackZ + 0.01, false);
+
+const kwSashW = kwW/2 - 0.02, kwSashH = kwH - 0.08;
+addBox(kwW, fw, fw, frameMat, -8.75, kwTop - fw/2, kBackZ + 0.02, false);
+addBox(kwW, fw, fw, frameMat, -8.75, kwBot + fw/2, kBackZ + 0.02, false);
+addBox(fw, kwH, fw, frameMat, -8.75 - kwW/2 + fw/2, kwY, kBackZ + 0.02, false);
+addBox(fw, kwH, fw, frameMat, -8.75 + kwW/2 - fw/2, kwY, kBackZ + 0.02, false);
+addBox(kwSashW, kwSashH, 0.02, glassMat, -8.75 + kwW/4, kwY, kBackZ + 0.02, false); 
+const kSlideBack = addBox(kwSashW, kwSashH, 0.02, glassMat, -8.75 - kwW/4, kwY, kBackZ - 0.02, false); 
+interactiveWindows.push({ mesh: kSlideBack, type: 'slide', closedPos: kSlideBack.position.clone(), openPos: kSlideBack.position.clone().add(new THREE.Vector3(-kwSashW, 0, 0)) });
 
 [-2.5, -3.5].forEach(wz => {
   addBox(fw, fw, kwW, frameMat, kLeftX + 0.02, kwTop - fw/2, wz, false);
   addBox(fw, fw, kwW, frameMat, kLeftX + 0.02, kwBot + fw/2, wz, false);
   addBox(fw, kwH, fw, frameMat, kLeftX + 0.02, kwY, wz - kwW/2 + fw/2, false);
   addBox(fw, kwH, fw, frameMat, kLeftX + 0.02, kwY, wz + kwW/2 - fw/2, false);
+  addBox(0.02, kwSashH, kwSashW, glassMat, kLeftX + 0.03, kwY, wz - kwW/4, false); 
+  const kSlideSide = addBox(0.02, kwSashH, kwSashW, glassMat, kLeftX - 0.01, kwY, wz + kwW/4, false); 
+  interactiveWindows.push({ mesh: kSlideSide, type: 'slide', closedPos: kSlideSide.position.clone(), openPos: kSlideSide.position.clone().add(new THREE.Vector3(0, 0, -kwSashW)) });
 });
-addBox(kwW, fw, fw, frameMat, -8.75, kwTop - fw/2, kBackZ + 0.02, false);
-addBox(kwW, fw, fw, frameMat, -8.75, kwBot + fw/2, kBackZ + 0.02, false);
-addBox(fw, kwH, fw, frameMat, -8.75 - kwW/2 + fw/2, kwY, kBackZ + 0.02, false);
-addBox(fw, kwH, fw, frameMat, -8.75 + kwW/2 - fw/2, kwY, kBackZ + 0.02, false);
 
 function buildRoomWall(x, z, floorY, roomH, hasDoor, doorX, parent = scene) {
   if (hasDoor) {
@@ -823,6 +1048,8 @@ function buildRoomWall(x, z, floorY, roomH, hasDoor, doorX, parent = scene) {
     addBox(fw, doorH, WALL_T + 0.04, doorMat, doorX - doorW/2 + fw/2, floorY + doorH/2, z, false, parent);
     addBox(fw, doorH, WALL_T + 0.04, doorMat, doorX + doorW/2 - fw/2, floorY + doorH/2, z, false, parent);
     addBox(doorW, fw, WALL_T + 0.04, doorMat, doorX, floorY + doorH - fw/2, z, false, parent);
+    const panelW = doorW - fw*2;
+    addSwingDoor(panelW, doorH - fw, 0.04, doorMat, doorX, floorY + doorH/2, z, '-x', -Math.PI/2, new THREE.Vector3(doorX, floorY, z), parent);
   } else { addBox(W, roomH, WALL_T, wallMat, x, floorY + roomH/2, z, true, parent); }
 }
 buildRoomWall(R2X, 0, 0, FL2, true, -5.2, scene);       
@@ -842,36 +1069,77 @@ function buildFacadeWall(cx, floorY, roomH, parent = scene) {
 buildFacadeWall(-4, 0, FL2, scene); buildFacadeWall(-4, FL2, H - FL2, floor2Group); 
 buildFacadeWall(-8, 0, FL2, scene); buildFacadeWall(-8, FL2, H - FL2, floor2Group); 
 
-addBox(W, FL2, WALL_T, wallMat, 0, FL2/2, L/2, true); 
-buildGlassBlockWall(0, FL2, L/2, W, H - FL2, 'z'); 
+const fWallZ = L/2;
+addBox(W, tallWinBot, WALL_T, wallMat, 0, tallWinBot/2, fWallZ, true); 
+addBox(W, FL2 - tallWinTop, WALL_T, wallMat, 0, tallWinTop + (FL2 - tallWinTop)/2, fWallZ, true); 
+addBox(0.25, tallWinH, WALL_T, wallMat, -1.875, tallWinBot + tallWinH/2, fWallZ, true); 
+addBox(2.5, tallWinH, WALL_T, wallMat, 0, tallWinBot + tallWinH/2, fWallZ, true); 
+addBox(0.25, tallWinH, WALL_T, wallMat, 1.875, tallWinBot + tallWinH/2, fWallZ, true); 
 
-// ---- ผนังด้านข้างขวาของบ้านชั้นล่าง (X = 2.0) ----
-// Section 1: Between Z = -4.5 and Z = 0 (Window center Z = -2.25)
-addBox(WALL_T, FL2, 0.56, wallMat, W/2, FL2/2, -4.07, true); 
-addBox(WALL_T, tallWinBot, 3.08, wallMat, W/2, tallWinBot/2, -2.25, true); 
-addBox(WALL_T, FL2 - tallWinTop, 3.08, wallMat, W/2, tallWinTop + (FL2 - tallWinTop)/2, -2.25, true); 
-addBox(WALL_T, FL2, 0.56, wallMat, W/2, FL2/2, -0.43, true); 
+const nwW = 0.5, nwH = tallWinH, nwY = tallWinBot + tallWinH/2;
+[-1.5, 1.5].forEach(nx => {
+    addBox(nwW, fw, WALL_T + 0.04, frameMat, nx, tallWinTop - fw/2, fWallZ, false); 
+    addBox(nwW, fw, WALL_T + 0.04, frameMat, nx, tallWinBot + fw/2, fWallZ, false); 
+    addBox(fw, nwH, WALL_T + 0.04, frameMat, nx - nwW/2 + fw/2, nwY, fWallZ, false); 
+    addBox(fw, nwH, WALL_T + 0.04, frameMat, nx + nwW/2 - fw/2, nwY, fWallZ, false); 
+    addBox(nwW - fw*2, nwH - fw*2, 0.02, glassMat, nx, nwY, fWallZ, false); 
+});
+
+// เปลี่ยนหน้าต่างกระจกบล็อกหน้าบ้านชั้น 2 เป็นกำแพงปูนทึบ (เฉพาะฝั่งหน้าบ้าน)
+addBox(W, H - FL2, WALL_T, wallMat, 0, FL2 + (H - FL2)/2, L/2, true, floor2Group);
+
+const bayW = 4.5;
+const wWin = 3.08;
+const wSide = (bayW - wWin) / 2; 
+
+addBox(WALL_T, FL2, wSide, wallMat, W/2, FL2/2, -4.5 + wSide/2, true); 
+addBox(WALL_T, tallWinBot, wWin, wallMat, W/2, tallWinBot/2, -2.25, true); 
+addBox(WALL_T, FL2 - tallWinTop, wWin, wallMat, W/2, tallWinTop + (FL2 - tallWinTop)/2, -2.25, true); 
 addTallWindowGroup(W/2, -2.25, 4, 'x', 0); 
+addBox(WALL_T, FL2, wSide, wallMat, W/2, FL2/2, -wSide/2, true); 
+addBox(WALL_T, FL2, 1.25, wallMat, W/2, FL2/2, 0.625, true);
+addBox(WALL_T, FL2, 1.25, wallMat, W/2, FL2/2, 3.875, true); 
 
-// Section 2: Between Z = 0 and Z = 4.5 (Door Z = 2.25)
-addBox(WALL_T, FL2, 1.1, wallMat, W/2, FL2/2, 0.70, true); 
-addBox(WALL_T, FL2, 1.1, wallMat, W/2, FL2/2, 3.80, true); 
-
-const fdwW = 2.0, fdwH = 2.0, fdwX = W/2, fdwZ = 2.25, fdwY = fdwH/2;
+// งานประตู 2 เมตร
+const fdwW = 2.0, fdwH = 2.8, fdwX = W/2, fdwZ = 2.25, fdwY = fdwH / 2;
 addBox(WALL_T, FL2 - fdwH, fdwW, wallMat, W/2, fdwH + (FL2 - fdwH)/2, fdwZ, true);
-addBox(WALL_T + 0.02, 0.05, fdwW, frameMat, fdwX, 0.025, fdwZ, false); 
-addBox(WALL_T + 0.02, 0.05, fdwW, frameMat, fdwX, fdwH - 0.025, fdwZ, false); 
-addBox(WALL_T + 0.02, fdwH, 0.05, frameMat, fdwX, fdwY, fdwZ - fdwW/2 + 0.025, false); 
-addBox(WALL_T + 0.02, fdwH, 0.05, frameMat, fdwX, fdwY, fdwZ + fdwW/2 - 0.025, false); 
-addBox(0.02, fdwH - 0.1, fdwW/2 + 0.02, glassMat, fdwX + 0.02, fdwY, fdwZ - fdwW/4, false); 
-addBox(0.02, fdwH - 0.1, fdwW/2 + 0.02, glassMat, fdwX - 0.02, fdwY, fdwZ + fdwW/4, false); 
 
-const archD = 1.0, vTh = 0.09, archDrop = 0.4; 
-addVentBlocks(W/2 + archD/2, (FL2 - archDrop) / 2, fdwZ - fdwW/2 - vTh/2, archD, FL2 - archDrop, 'z');
-addVentBlocks(W/2 + archD/2, (FL2 - archDrop) / 2, fdwZ + fdwW/2 + vTh/2, archD, FL2 - archDrop, 'z');
-addVentBlocks(W/2 + archD - vTh/2, (FL2 - 0.3) - archDrop, fdwZ, fdwW + vTh*2, 0.6, 'x');
+const doorInward = -0.1; 
+
+addBox(WALL_T + 0.02, 0.05, fdwW, frameMat, fdwX + doorInward, 0.025, fdwZ, false); 
+addBox(WALL_T + 0.02, 0.05, 3.25, frameMat, fdwX + 0.02 + doorInward, fdwH - 0.025, 2.875, false); 
+addBox(WALL_T + 0.02, fdwH, 0.05, frameMat, fdwX + doorInward, fdwY, fdwZ - fdwW/2 + 0.025, false); 
+addBox(WALL_T + 0.02, fdwH, 0.05, frameMat, fdwX + doorInward, fdwY, fdwZ + fdwW/2 - 0.025, false); 
+
+const doorPanelW = fdwW / 2 + 0.05; 
+const sl1ClosedZ = fdwZ - fdwW/4; 
+const sl2ClosedZ = fdwZ + fdwW/4; 
+
+const slDoor1 = addBox(0.04, fdwH - 0.05, doorPanelW, doorMat, fdwX + WALL_T/2 + 0.02 + doorInward, fdwY, sl1ClosedZ, false); 
+const slDoor2 = addBox(0.04, fdwH - 0.05, doorPanelW, doorMat, fdwX + WALL_T/2 + 0.06 + doorInward, fdwY, sl2ClosedZ, false); 
+
+interactiveDoors.push({ 
+    mesh: slDoor1, type: 'slide', 
+    closedPos: slDoor1.position.clone(), 
+    openPos: new THREE.Vector3(slDoor1.position.x, slDoor1.position.y, sl1ClosedZ + 2.0), 
+    trigger: new THREE.Vector3(fdwX, 0, fdwZ), radius: 3.0, isOpen: false 
+});
+interactiveDoors.push({ 
+    mesh: slDoor2, type: 'slide', 
+    closedPos: slDoor2.position.clone(), 
+    openPos: new THREE.Vector3(slDoor2.position.x, slDoor2.position.y, sl2ClosedZ + 1.0), 
+    trigger: new THREE.Vector3(fdwX, 0, fdwZ), radius: 3.0, isOpen: false 
+});
+
+const archD = 1.0, archH = FL2 + 0.5;
+const expSide = 0.3; 
+const archW = fdwW + (expSide * 2);
+addBox(archD, archH, WALL_T, wallMat, W/2 + archD/2, archH/2, fdwZ - archW/2 - WALL_T/2, true); 
+addBox(archD, archH, WALL_T, wallMat, W/2 + archD/2, archH/2, fdwZ + archW/2 + WALL_T/2, true); 
+const topWallH = 0.8;
+addBox(WALL_T, topWallH, archW + WALL_T*2, wallMat, W/2 + archD - WALL_T/2, archH - topWallH/2, fdwZ, true); 
 const archRoofMat = new THREE.MeshStandardMaterial({ color: 0x8a9098, roughness: 0.9 });
-addBox(archD, 0.04, fdwW + vTh*2, archRoofMat, W/2 + archD/2, (FL2 + 0.02) - archDrop, fdwZ, false);
+addBox(archD, 0.04, archW + WALL_T*2, archRoofMat, W/2 + archD/2, archH + 0.02, fdwZ, false); 
 
 function dimLine(p1, p2, color) {
   const geo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...p1), new THREE.Vector3(...p2)]);
@@ -905,102 +1173,352 @@ const fan1 = makeFan(0, -L/4); const fan2 = makeFan(0, L/4);
  
 const gridHelper = new THREE.GridHelper(60, 60, 0x8899aa, 0x8899aa);
 gridHelper.position.y = 0.01; scene.add(gridHelper);
- 
-// ---- OrbitControls & Touch Controls ----
+
+// ============================================================================
+// ---- ADDING ALL FURNITURE & DECOR ----
+// ============================================================================
+addFurn('sofa', 0.5, 0, 2.0, -Math.PI/2, scene);
+addFurn('tvstand', -1.6, 0, 2.0, Math.PI/2, scene);
+
+addFurn('table', 0, 0, -3.0, 0, scene);
+addFurn('chair', 0, 0, -2.3, 0, scene);
+addFurn('chair', 0, 0, -3.7, Math.PI, scene);
+addFurn('chair', -1.0, 0, -3.0, Math.PI/2, scene); 
+addFurn('chair', 1.0, 0, -3.0, -Math.PI/2, scene); 
+
+addFurn('counter', -8.75, 0, -4.2, 0, scene); 
+addFurn('fridge', -9.63, 0, -1.575, Math.PI/2, scene);
+addFurn('kitchen_sink', -9.63, 0, -2.45, 0, scene); 
+addExhaustFan(-7.875, 2.3, -4.45, 0, scene);
+
+addFurn('desk', -8, 0, 3.5, 0, scene);
+addFurn('chair', -8, 0, 2.8, 0, scene);
+addFurn('bookshelf', -9.2, 0, 2.25, Math.PI/2, scene);
+
+addFurn('bed', -4, 0, 2.25, Math.PI, scene);
+addFurn('wardrobe', -5.7, 0, 3.5, Math.PI/2, scene);
+addFurn('desk', -2.5, 0, 3.5, -Math.PI/2, scene);
+addFurn('chair', -3.2, 0, 3.5, Math.PI/2, scene);
+
+addFurn('bed', -4, FL2, 2.25, Math.PI, floor2Group);
+addFurn('wardrobe', -5.7, FL2, 3.5, Math.PI/2, floor2Group); 
+addFurn('desk', -2.5, FL2, 3.5, -Math.PI/2, floor2Group); 
+addFurn('chair', -3.2, FL2, 3.5, Math.PI/2, floor2Group);
+
+addFurn('bed', -8, FL2, 1.5, 0, floor2Group);
+addFurn('wardrobe', -9.7, FL2, 3.5, Math.PI/2, floor2Group); 
+
+addFurn('toilet', -7.2, 0, -3.5, -Math.PI/2, scene);
+addFurn('sink', -7.2, 0, -2.5, -Math.PI/2, scene);
+addFurn('toilet', -7.2, FL2, -3.5, -Math.PI/2, floor2Group);
+addFurn('sink', -7.2, FL2, -2.5, -Math.PI/2, floor2Group);
+
+addFurn('washing_machine', -9.5, FL2 + 0.09, -5.0, 0, floor2Group);
+addFurn('drying_rack', -9.3, FL2 + 0.09, -3.5, 0, floor2Group);
+
+// งานศิลปะทั้งหมด (Artworks)
+addArt(-1.94, FL2 + 1.5, 2.25, 2.4, 1.2, Math.PI / 2, 0x2c3e50, 0xe74c3c, floor2Group);
+addArt(-2.5, FL2 + 1.5, -4.44, 0.7, 1.0, 0, 0x8e44ad, 0xf1c40f, floor2Group);
+addArt(-2.94, 1.5, -2.5, 0.8, 1.0, Math.PI / 2, 0x16a085, 0xf39c12, scene);
+addArt(-2.5, 1.5, -4.44, 0.7, 1.0, 0, 0x2980b9, 0xecf0f1, scene);
+addArt(-9.94, FL2 + 1.5, -0.75, 1.0, 1.2, Math.PI / 2, 0xd35400, 0xbdc3c7, floor2Group);
+
+// ============================================================================
+// ---- CAMERA MODES & CONTROLS ----
+// ============================================================================
+let isFirstPersonMode = false;
+let isLocked = false;
+let isOverviewMode = false;
+let isMobileMode = false;
+
 let isDragging = false, isRightDrag = false;
 let lastMouse = { x: 0, y: 0 };
-let spherical = { theta: 2.3, phi: 1.2, radius: 24 }; 
+let spherical = { theta: 2.3, phi: 1.2, radius: 24 };
 let target = new THREE.Vector3(-4, H/2, 0);
- 
-function updateCamera() {
-  camera.position.x = target.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
-  camera.position.y = target.y + spherical.radius * Math.cos(spherical.phi);
-  camera.position.z = target.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
-  camera.lookAt(target);
-}
-updateCamera();
- 
-const canvas = renderer.domElement;
 
-canvas.addEventListener('mousedown', e => { isDragging = true; isRightDrag = e.button === 2; lastMouse = { x: e.clientX, y: e.clientY }; });
+const player = new THREE.Group();
+player.position.set(2, 0, 8);
+scene.add(player);
+let yaw = Math.PI;   
+let pitch = 0.2;     
+const keys = { w: false, a: false, s: false, d: false, space: false };
+
+window.toggleFirstPerson = function() {
+    isFirstPersonMode = !isFirstPersonMode;
+    const fpBtn = document.getElementById('fpToggleBtn');
+    const joy = document.getElementById('joystick-base');
+    const jump = document.getElementById('jump-btn');
+
+    if(isFirstPersonMode) {
+        if(isOverviewMode) window.toggleOverview(); 
+        fpBtn.innerText = '1st Person: ON';
+        fpBtn.classList.remove('off');
+        yaw = Math.PI; pitch = 0; 
+        if (isMobileMode) { joy.style.display = 'block'; jump.style.display = 'block'; }
+    } else {
+        fpBtn.innerText = '1st Person: OFF';
+        fpBtn.classList.add('off');
+        if(isLocked) document.exitPointerLock();
+        joy.style.display = 'none'; jump.style.display = 'none';
+        
+        keys.w = keys.a = keys.s = keys.d = keys.space = false; 
+    }
+};
+
+window.toggleOverview = function() {
+    isOverviewMode = !isOverviewMode;
+    const btn = document.getElementById('overviewBtn');
+    if (isOverviewMode) {
+        btn.innerText = '🎥 Overview: ON';
+        btn.classList.remove('off');
+        if (isFirstPersonMode) window.toggleFirstPerson();
+    } else {
+        btn.innerText = '🎥 Overview: OFF';
+        btn.classList.add('off');
+    }
+};
+
+window.toggleMobileUI = function() {
+    isMobileMode = !isMobileMode;
+    const btn = document.getElementById('mobileToggleBtn');
+    const joy = document.getElementById('joystick-base');
+    const jump = document.getElementById('jump-btn');
+    
+    const titlePanel = document.getElementById('title-panel');
+    const dimsPanel = document.getElementById('dims-panel');
+    const controlsPanel = document.getElementById('controls-panel');
+    const fanInd = document.getElementById('fan-indicator');
+
+    if (isMobileMode) {
+        btn.innerText = 'Mobile UI: ON';
+        btn.classList.remove('off');
+        if (isFirstPersonMode) { joy.style.display = 'block'; jump.style.display = 'block'; }
+        
+        titlePanel.style.display = 'none';
+        dimsPanel.style.display = 'none';
+        controlsPanel.style.display = 'none';
+        fanInd.style.display = 'none';
+    } else {
+        btn.innerText = 'Mobile UI: OFF';
+        btn.classList.add('off');
+        joy.style.display = 'none'; jump.style.display = 'none';
+        
+        titlePanel.style.display = '';
+        dimsPanel.style.display = '';
+        controlsPanel.style.display = '';
+        fanInd.style.display = '';
+    }
+};
+
+const canvas = renderer.domElement;
+canvas.addEventListener('click', () => {
+    if (isFirstPersonMode && !isLocked && !isMobileMode) document.body.requestPointerLock();
+});
+
+document.addEventListener('pointerlockchange', () => {
+  isLocked = document.pointerLockElement === document.body;
+  const overlay = document.getElementById('ui-overlay');
+  const crosshair = document.getElementById('crosshair');
+  if (isLocked) { overlay.style.opacity = '0'; overlay.style.pointerEvents = 'none'; crosshair.style.display = 'block'; } 
+  else { overlay.style.opacity = '1'; overlay.style.pointerEvents = 'auto'; crosshair.style.display = 'none'; }
+});
+
+// PC Mouse
+canvas.addEventListener('mousedown', e => {
+    if (isFirstPersonMode) return; 
+    isDragging = true; isRightDrag = e.button === 2; lastMouse = { x: e.clientX, y: e.clientY }; 
+});
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 canvas.addEventListener('mouseup', () => isDragging = false);
-canvas.addEventListener('mousemove', e => {
-  if (!isDragging) return;
-  const dx = (e.clientX - lastMouse.x) * 0.005, dy = (e.clientY - lastMouse.y) * 0.005;
-  lastMouse = { x: e.clientX, y: e.clientY };
-  if (isRightDrag) {
-    const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0), new THREE.Vector3().subVectors(camera.position, target).normalize()).normalize();
-    target.addScaledVector(right, -dx * 3); target.y += dy * 3;
-  } else {
-    spherical.theta -= dx; spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi + dy));
-  }
-  updateCamera();
-});
-canvas.addEventListener('wheel', e => { spherical.radius = Math.max(3, Math.min(60, spherical.radius + e.deltaY * 0.02)); updateCamera(); });
 
-let lastTouch = null;
-let initialPinchDist = null;
-let lastPinchCenter = null;
+document.addEventListener('mousemove', e => {
+  if (isFirstPersonMode && isLocked && !isMobileMode) {
+      yaw -= e.movementX * 0.002; pitch -= e.movementY * 0.002;
+      pitch = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, pitch)); 
+  } else if (!isFirstPersonMode && isDragging) {
+      const dx = (e.clientX - lastMouse.x) * 0.005, dy = (e.clientY - lastMouse.y) * 0.005;
+      lastMouse = { x: e.clientX, y: e.clientY };
+      if (isRightDrag) {
+          const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0), new THREE.Vector3().subVectors(camera.position, target).normalize()).normalize();
+          target.addScaledVector(right, -dx * 3); target.y += dy * 3;
+      } else {
+          spherical.theta -= dx; spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi + dy));
+      }
+  }
+});
+canvas.addEventListener('wheel', e => { 
+    if(isFirstPersonMode) return;
+    spherical.radius = Math.max(3, Math.min(60, spherical.radius + e.deltaY * 0.02)); 
+});
+
+// ---- Mobile Touch Controls (With Pinch to Zoom & Fixed ID Tracking) ----
+let lookTouchId = null;
+let lastTouchX = 0, lastTouchY = 0;
+let isTouchingScreen = false;
+let lastPinchDist = null;
 
 canvas.addEventListener('touchstart', e => {
-  e.preventDefault();
-  if (e.touches.length === 1) {
-    lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    initialPinchDist = null;
-  } else if (e.touches.length === 2) {
-    const dx = e.touches[0].clientX - e.touches[1].clientX;
-    const dy = e.touches[0].clientY - e.touches[1].clientY;
-    initialPinchDist = Math.sqrt(dx * dx + dy * dy);
-    lastPinchCenter = { x: (e.touches[0].clientX + e.touches[1].clientX) / 2, y: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
-    lastTouch = null;
-  }
-}, { passive: false });
+    if (isFirstPersonMode) {
+        if (!isMobileMode) return;
+        for(let i=0; i<e.changedTouches.length; i++) {
+            let t = e.changedTouches[i];
+            if(t.target.closest('#joystick-base') || t.target.closest('#jump-btn')) continue;
+            
+            if (lookTouchId === null) {
+                lookTouchId = t.identifier;
+                lastTouchX = t.clientX; lastTouchY = t.clientY;
+                isTouchingScreen = true; 
+                break; 
+            }
+        }
+    } else {
+        if (e.touches.length === 2) {
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            lastPinchDist = Math.sqrt(dx*dx + dy*dy);
+            isDragging = false; 
+        } else if (e.touches.length === 1) {
+            isDragging = true;
+            lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            lastPinchDist = null;
+        }
+    }
+}, {passive: false});
 
 canvas.addEventListener('touchmove', e => {
-  e.preventDefault();
-  if (e.touches.length === 1 && lastTouch) {
-    const dx = (e.touches[0].clientX - lastTouch.x) * 0.005;
-    const dy = (e.touches[0].clientY - lastTouch.y) * 0.005;
-    lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    spherical.theta -= dx; 
-    spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi + dy));
-    updateCamera();
-  } else if (e.touches.length === 2 && initialPinchDist && lastPinchCenter) {
-    const dx = e.touches[0].clientX - e.touches[1].clientX;
-    const dy = e.touches[0].clientY - e.touches[1].clientY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const zoomDelta = (initialPinchDist - dist) * 0.05;
-    spherical.radius = Math.max(3, Math.min(60, spherical.radius + zoomDelta));
-    initialPinchDist = dist;
-
-    const currentCenter = { x: (e.touches[0].clientX + e.touches[1].clientX) / 2, y: (e.touches[0].clientY + e.touches[1].clientY) / 2 };
-    const panX = (currentCenter.x - lastPinchCenter.x) * 0.01;
-    const panY = (currentCenter.y - lastPinchCenter.y) * 0.01;
-    
-    const forward = new THREE.Vector3().subVectors(target, camera.position).normalize();
-    const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0,1,0), forward).normalize();
-    const up = new THREE.Vector3().crossVectors(forward, right).normalize();
-
-    target.addScaledVector(right, panX * spherical.radius * 0.1); 
-    target.addScaledVector(up, panY * spherical.radius * 0.1);
-
-    lastPinchCenter = currentCenter;
-    updateCamera();
-  }
-}, { passive: false });
+    if (isFirstPersonMode) {
+        if (!isMobileMode || !isTouchingScreen) return;
+        for(let i=0; i<e.changedTouches.length; i++) {
+            let t = e.changedTouches[i];
+            if (t.identifier === lookTouchId) {
+                const dx = t.clientX - lastTouchX;
+                const dy = t.clientY - lastTouchY;
+                yaw -= dx * 0.005; pitch -= dy * 0.005;
+                pitch = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, pitch));
+                lastTouchX = t.clientX; lastTouchY = t.clientY; break;
+            }
+        }
+    } else {
+        if (e.touches.length === 2 && lastPinchDist !== null) {
+            e.preventDefault(); 
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            spherical.radius += (lastPinchDist - dist) * 0.05;
+            spherical.radius = Math.max(3, Math.min(60, spherical.radius));
+            lastPinchDist = dist;
+        } else if (e.touches.length === 1 && isDragging) {
+            const dx = (e.touches[0].clientX - lastMouse.x) * 0.005;
+            const dy = (e.touches[0].clientY - lastMouse.y) * 0.005;
+            lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            spherical.theta -= dx;
+            spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi + dy));
+        }
+    }
+}, {passive: false});
 
 canvas.addEventListener('touchend', e => {
-  if (e.touches.length === 0) {
-    lastTouch = null; initialPinchDist = null; lastPinchCenter = null;
-  } else if (e.touches.length === 1) {
-    lastTouch = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-    initialPinchDist = null; lastPinchCenter = null;
-  }
+    if (isFirstPersonMode) {
+        for(let i=0; i<e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === lookTouchId) {
+                isTouchingScreen = false; lookTouchId = null;
+            }
+        }
+    } else {
+        if (e.touches.length < 2) lastPinchDist = null;
+        if (e.touches.length === 0) isDragging = false;
+    }
 });
- 
-// ---- View presets ----
+canvas.addEventListener('touchcancel', e => {
+    if (isFirstPersonMode) {
+        for(let i=0; i<e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === lookTouchId) {
+                isTouchingScreen = false; lookTouchId = null;
+            }
+        }
+    } else {
+        isDragging = false;
+    }
+});
+
+// Joystick Logic
+let joyActive = false, joyX = 0, joyY = 0;
+let joyTouchId = null;
+const jBase = document.getElementById('joystick-base');
+const jStick = document.getElementById('joystick-stick');
+
+function handleJoystick(touch) {
+    const rect = jBase.getBoundingClientRect();
+    const jRadius = rect.width / 2;
+    const cx = rect.left + jRadius, cy = rect.top + jRadius;
+    let dx = touch.clientX - cx, dy = touch.clientY - cy;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    if (dist > jRadius) { dx = (dx/dist)*jRadius; dy = (dy/dist)*jRadius; }
+    joyX = dx / jRadius; joyY = dy / jRadius;
+    jStick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+}
+
+jBase.addEventListener('touchstart', e => { 
+    e.preventDefault(); 
+    if (!joyActive) {
+        joyActive = true; 
+        joyTouchId = e.changedTouches[0].identifier; 
+        handleJoystick(e.changedTouches[0]); 
+    }
+}, {passive: false});
+
+jBase.addEventListener('touchmove', e => { 
+    e.preventDefault(); 
+    if(joyActive){ 
+        for(let i=0; i<e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === joyTouchId) {
+                handleJoystick(e.changedTouches[i]);
+                break;
+            }
+        }
+    } 
+}, {passive: false});
+
+function stopJoystick(e) {
+    if(joyActive) {
+        for(let i=0; i<e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === joyTouchId) {
+                joyActive = false; joyX = 0; joyY = 0; joyTouchId = null;
+                jStick.style.transform = `translate(-50%, -50%)`;
+                break;
+            }
+        }
+    }
+}
+jBase.addEventListener('touchend', stopJoystick, {passive: false});
+jBase.addEventListener('touchcancel', stopJoystick, {passive: false});
+
+// Jump Button Logic
+const jumpBtn = document.getElementById('jump-btn');
+jumpBtn.addEventListener('touchstart', e => { e.preventDefault(); keys.space = true; jumpBtn.style.background='rgba(255,255,255,0.4)'; }, {passive: false});
+jumpBtn.addEventListener('touchend', e => { e.preventDefault(); keys.space = false; jumpBtn.style.background='rgba(0,0,0,0.15)'; }, {passive: false});
+jumpBtn.addEventListener('touchcancel', e => { e.preventDefault(); keys.space = false; jumpBtn.style.background='rgba(0,0,0,0.15)'; }, {passive: false});
+
+
+document.addEventListener('keydown', e => {
+  if(e.code === 'KeyW' || e.code === 'ArrowUp') keys.w = true;
+  if(e.code === 'KeyA' || e.code === 'ArrowLeft') keys.a = true;
+  if(e.code === 'KeyS' || e.code === 'ArrowDown') keys.s = true;
+  if(e.code === 'KeyD' || e.code === 'ArrowRight') keys.d = true;
+  if(e.code === 'Space') keys.space = true;
+});
+document.addEventListener('keyup', e => {
+  if(e.code === 'KeyW' || e.code === 'ArrowUp') keys.w = false;
+  if(e.code === 'KeyA' || e.code === 'ArrowLeft') keys.a = false;
+  if(e.code === 'KeyS' || e.code === 'ArrowDown') keys.s = false;
+  if(e.code === 'KeyD' || e.code === 'ArrowRight') keys.d = false;
+  if(e.code === 'Space') keys.space = false;
+});
+
 window.setView = function(v) {
+  if (isFirstPersonMode) window.toggleFirstPerson();
+  if (isOverviewMode) window.toggleOverview(); 
+  
   const anim = (target_s, target_t) => {
     const steps = 40; let i = 0; const from = { ...spherical }, fromT = target.clone();
     const interval = setInterval(() => {
@@ -1008,7 +1526,7 @@ window.setView = function(v) {
       spherical.theta = from.theta + (target_s.theta - from.theta) * ease;
       spherical.phi = from.phi + (target_s.phi - from.phi) * ease;
       spherical.radius = from.radius + (target_s.radius - from.radius) * ease;
-      target.lerpVectors(fromT, target_t, ease); updateCamera();
+      target.lerpVectors(fromT, target_t, ease); 
       if (i >= steps) clearInterval(interval);
     }, 16);
   };
@@ -1021,43 +1539,157 @@ window.setView = function(v) {
   if (v === 'top') anim({ theta: -0.6, phi: 0.05, radius: 24 }, center);
 };
 
-// ---- Toggles ----
-let roofVisible = true, floor2Visible = true;
-window.toggleRoof = function() { roofVisible = !roofVisible; updateVisibility(); };
-window.toggleFloor2 = function() { floor2Visible = !floor2Visible; updateVisibility(); };
-function updateVisibility() {
-  floor2Group.visible = floor2Visible; mainRoofGroup.visible = roofVisible && floor2Visible;
+window.toggleRoof = function() { mainRoofGroup.visible = !mainRoofGroup.visible; updateVisibilityBtns(); };
+window.toggleFloor2 = function() { floor2Group.visible = !floor2Group.visible; updateVisibilityBtns(); };
+function updateVisibilityBtns() {
   const rBtn = document.getElementById('roofToggleBtn'), fBtn = document.getElementById('floor2ToggleBtn');
-  rBtn.innerText = roofVisible ? 'Roof: ON' : 'Roof: OFF';
-  roofVisible ? rBtn.classList.remove('off') : rBtn.classList.add('off');
-  rBtn.style.opacity = floor2Visible ? "1" : "0.5"; rBtn.style.pointerEvents = floor2Visible ? "auto" : "none";
-  fBtn.innerText = floor2Visible ? 'Roof+2nd: ON' : 'Roof+2nd: OFF';
-  floor2Visible ? fBtn.classList.remove('off') : fBtn.classList.add('off');
+  rBtn.innerText = mainRoofGroup.visible ? 'Roof: ON' : 'Roof: OFF';
+  fBtn.innerText = floor2Group.visible ? 'Roof+2nd: ON' : 'Roof+2nd: OFF';
 }
-
-// ---- UI Toggle ----
-let uiVisible = true;
-window.toggleUI = function() {
-  uiVisible = !uiVisible;
-  const opacity = uiVisible ? '1' : '0';
-  document.getElementById('title-panel').style.opacity = opacity;
-  document.getElementById('dims-panel').style.opacity = opacity;
-  document.getElementById('fan-indicator').style.opacity = opacity;
-  document.getElementById('controls-panel').style.opacity = opacity;
-  
-  const btn = document.getElementById('uiToggleBtn');
-  btn.innerText = uiVisible ? 'UI: ON' : 'UI: OFF';
-  uiVisible ? btn.classList.remove('off') : btn.classList.add('off');
-};
- 
 window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
  
-// ---- Animate ----
+// ---- Physics & Animation Loop ----
 const clock = new THREE.Clock();
+const moveSpeed = 6.0;
+const jumpForce = 8.0;
+const gravity = -25.0;
+let velocityY = 0;
+let isGrounded = true;
+
 function animate() {
   requestAnimationFrame(animate);
+  const delta = Math.min(clock.getDelta(), 0.1); 
   const t = clock.getElapsedTime();
+  
   fan1.bladesGroup.rotation.y = t * 3.5; fan2.bladesGroup.rotation.y = -t * 3.2;
+  
+  exhaustFans.forEach(fan => fan.rotation.z -= delta * 15.0);
+
+  const playerPos = player.position;
+  interactiveDoors.forEach(door => {
+      let isVisible = true;
+      let p = door.mesh;
+      while(p) { if (!p.visible) { isVisible = false; break; } p = p.parent; }
+      
+      if (isVisible) {
+          const dist = playerPos.distanceTo(door.trigger);
+          door.isOpen = dist < door.radius;
+      } else {
+          door.isOpen = false;
+      }
+      
+      const speed = delta * 5.0; 
+      if (door.type === 'slide') {
+          const targetPos = door.isOpen ? door.openPos : door.closedPos;
+          door.mesh.position.lerp(targetPos, Math.min(speed, 1.0));
+      } else if (door.type === 'swing') {
+          const targetRot = door.isOpen ? door.openRot : door.closedRot;
+          door.mesh.rotation.y = THREE.MathUtils.lerp(door.mesh.rotation.y, targetRot, Math.min(speed, 1.0));
+      }
+  });
+
+  const winSpeed = delta * 3.0;
+  interactiveWindows.forEach(win => {
+      if (win.type === 'slide') {
+          const targetPos = windowsOpen ? win.openPos : win.closedPos;
+          win.mesh.position.lerp(targetPos, winSpeed);
+      } else if (win.type === 'awning') {
+          const targetX = windowsOpen ? win.openRotX : 0;
+          const targetZ = windowsOpen ? win.openRotZ : 0;
+          win.mesh.rotation.x = THREE.MathUtils.lerp(win.mesh.rotation.x, targetX, winSpeed);
+          win.mesh.rotation.z = THREE.MathUtils.lerp(win.mesh.rotation.z, targetZ, winSpeed);
+      }
+  });
+
+  if (isFirstPersonMode) {
+      if (isLocked || isMobileMode) {
+        const hitObjects = [];
+        scene.traverse(child => {
+            if (child.isMesh && child.material !== dimLineMat) {
+                let isVisible = true;
+                let p = child;
+                while(p) { if(!p.visible) { isVisible = false; break; } p = p.parent; }
+                if(isVisible) hitObjects.push(child);
+            }
+        });
+
+        const forward = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
+        const right = new THREE.Vector3(forward.z, 0, -forward.x);
+        const dir = new THREE.Vector3();
+        
+        let moveZ = 0, moveX = 0;
+        if (keys.w) moveZ += 1;
+        if (keys.s) moveZ -= 1;
+        if (keys.a) moveX += 1;
+        if (keys.d) moveX -= 1;
+
+        if (isMobileMode && joyActive) {
+            moveZ -= joyY;
+            moveX -= joyX; 
+        }
+
+        if (moveZ !== 0) dir.addScaledVector(forward, moveZ);
+        if (moveX !== 0) dir.addScaledVector(right, moveX);
+        if (dir.lengthSq() > 0) dir.normalize();
+
+        const moveDist = moveSpeed * delta;
+        const playerRadius = 0.25;
+
+        if (dir.x !== 0) {
+            const dirX = new THREE.Vector3(Math.sign(dir.x), 0, 0);
+            const rayOriginX = new THREE.Vector3(player.position.x, player.position.y + 0.5, player.position.z);
+            const rayX = new THREE.Raycaster(rayOriginX, dirX, 0, playerRadius + Math.abs(dir.x * moveDist));
+            if (rayX.intersectObjects(hitObjects, false).length === 0) player.position.x += dir.x * moveDist;
+        }
+
+        if (dir.z !== 0) {
+            const dirZ = new THREE.Vector3(0, 0, Math.sign(dir.z));
+            const rayOriginZ = new THREE.Vector3(player.position.x, player.position.y + 0.5, player.position.z);
+            const rayZ = new THREE.Raycaster(rayOriginZ, dirZ, 0, playerRadius + Math.abs(dir.z * moveDist));
+            if (rayZ.intersectObjects(hitObjects, false).length === 0) player.position.z += dir.z * moveDist;
+        }
+
+        velocityY += gravity * delta;
+        player.position.y += velocityY * delta;
+
+        const rayOriginY = player.position.clone();
+        rayOriginY.y += 0.8; 
+        const raycasterY = new THREE.Raycaster(rayOriginY, new THREE.Vector3(0, -1, 0), 0, 5);
+        const intersectsY = raycasterY.intersectObjects(hitObjects, false);
+        
+        let floorY = 0; 
+        if (intersectsY.length > 0) floorY = intersectsY[0].point.y;
+
+        if (player.position.y <= floorY) {
+            player.position.y = floorY;
+            velocityY = 0;
+            isGrounded = true;
+        } else {
+            isGrounded = false;
+        }
+
+        if (keys.space && isGrounded) {
+            velocityY = jumpForce;
+            isGrounded = false;
+        }
+      }
+
+      const eyeHeight = 1.7; 
+      camera.position.copy(player.position);
+      camera.position.y += eyeHeight;
+      const lookDir = new THREE.Vector3(Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), Math.cos(yaw) * Math.cos(pitch));
+      camera.lookAt(camera.position.clone().add(lookDir));
+
+  } else {
+      if (isOverviewMode) {
+          spherical.theta -= delta * 0.15; 
+      }
+      camera.position.x = target.x + spherical.radius * Math.sin(spherical.phi) * Math.sin(spherical.theta);
+      camera.position.y = target.y + spherical.radius * Math.cos(spherical.phi);
+      camera.position.z = target.z + spherical.radius * Math.sin(spherical.phi) * Math.cos(spherical.theta);
+      camera.lookAt(target);
+  }
+
   renderer.render(scene, camera);
 }
 animate();
