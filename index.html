@@ -49,21 +49,28 @@
   .ctrl span { display: block; color: #1a4a99; font-size: 12px; font-weight: bold; margin-bottom: 2px; }
   .ctrl-highlight { color: #d9534f; font-weight: bold; }
  
-  #view-btns {
-    position: absolute; bottom: 20px; right: 20px;
-    display: flex; flex-direction: column; gap: 6px; pointer-events: auto;
-  }
+  /* ---- Layout Buttons ---- */
   .vbtn {
     background: rgba(255,255,255,0.88); border: 1px solid rgba(60,100,160,0.22); color: #333; 
     font-size: 9px; letter-spacing: 1.5px; padding: 7px 12px; border-radius: 5px; cursor: pointer; text-transform: uppercase; transition: all 0.2s; white-space: nowrap;
   }
-  .vbtn:hover { background: rgba(60,100,160,0.1); border-color: rgba(60,100,160,0.5); }
-  .btn-toggle { background: #e8f0fe; color: #1a4a99; font-weight: bold; }
-  .btn-toggle.off { background: #fce8e8; color: #991a1a; border-color: #dfaaaa; }
-  #fpToggleBtn, #mobileToggleBtn { border: 2px solid #4a90e2; margin-top: 4px; }
-  #fpToggleBtn.off, #mobileToggleBtn.off { border: 1px solid #dfaaaa; }
- 
-  #overviewBtn { position: absolute; top: 95px; left: 20px; border: 2px solid #4a90e2; pointer-events: auto; }
+  .vbtn:hover { background: rgba(60,100,160,0.5); border-color: rgba(60,100,160,0.5); }
+  .btn-toggle { background: #e8f0fe; color: #1a4a99; font-weight: bold; border: 2px solid rgba(60,100,160,0.3); }
+  .btn-toggle.off { background: #fce8e8; color: #991a1a; border: 1px solid #dfaaaa; font-weight: normal; }
+  
+  #overviewBtn, #fpToggleBtn, #mobileToggleBtn { border: 2px solid #4a90e2; font-weight: bold; }
+  #overviewBtn.off, #fpToggleBtn.off, #mobileToggleBtn.off { border: 1px solid #dfaaaa; font-weight: normal; }
+
+  #view-btns {
+    position: absolute; bottom: 20px; right: 20px;
+    display: flex; flex-direction: column; gap: 6px; pointer-events: auto;
+  }
+  
+  #left-func-btns {
+    position: absolute; top: 95px; left: 20px;
+    display: flex; flex-direction: column; gap: 6px; pointer-events: auto; align-items: flex-start;
+  }
+  #left-func-btns .vbtn { text-align: left; }
 
   #fan-indicator { position: absolute; bottom: 20px; left: 20px; background: rgba(255,255,255,0.88); border: 1px solid rgba(60,100,160,0.18); border-radius: 8px; padding: 10px 14px; pointer-events: none; }
   #fan-indicator p { font-size: 9px; color: #5a7090; letter-spacing: 1px; }
@@ -93,8 +100,6 @@
   /* ---------------------------------------------------- */
   /* RESPONSIVE DESIGN FOR DIFFERENT ASPECT RATIOS / SIZES*/
   /* ---------------------------------------------------- */
-
-  /* สำหรับ Tablet และ มือถือแนวตั้ง (Portrait) */
   @media (max-width: 900px), (max-height: 600px) {
     #dims-panel, #controls-panel, #fan-indicator { display: none !important; }
     
@@ -106,28 +111,23 @@
       top: 10px; right: 10px; bottom: auto; 
       display: grid; grid-template-columns: repeat(2, 1fr); gap: 4px; z-index: 15;
     }
-    #view-btns hr { grid-column: span 2; margin: 2px 0; }
     .vbtn { padding: 8px 6px; font-size: 8px; text-align: center; }
 
-    #overviewBtn { top: 75px; left: 10px; right: auto; bottom: auto; padding: 8px 10px; font-size: 9px; z-index: 15;}
+    #left-func-btns { top: 75px; left: 10px; z-index: 15; align-items: stretch; }
+    #left-func-btns .vbtn { padding: 8px 6px; font-size: 8px; text-align: left; }
     
     #joystick-base { bottom: 40px; left: 40px; width: 120px; height: 120px; }
     #joystick-stick { width: 50px; height: 50px; }
     #jump-btn { bottom: 60px; right: 80px; width: 75px; height: 75px; line-height: 75px; font-size: 14px; }
   }
 
-  /* สำหรับมือถือแนวนอนสุดๆ (Extreme Landscape - Height < 450px) */
   @media (max-height: 450px) {
     #title-panel { display: none; } 
     
-    #view-btns {
-      grid-template-columns: repeat(3, 1fr); 
-      top: 5px; right: 5px; gap: 3px;
-    }
-    #view-btns hr { grid-column: span 3; margin: 1px 0; }
+    #view-btns { grid-template-columns: repeat(3, 1fr); top: 5px; right: 5px; gap: 3px; }
     .vbtn { padding: 6px 4px; font-size: 7px; letter-spacing: 0.5px; }
     
-    #overviewBtn { top: 10px; left: 10px; right: auto; bottom: auto; padding: 6px; font-size: 8px; }
+    #left-func-btns { top: 10px; left: 10px; gap: 4px; }
     
     #joystick-base { bottom: 20px; left: 40px; width: 100px; height: 100px; }
     #joystick-stick { width: 45px; height: 45px; }
@@ -164,6 +164,17 @@
       <div class="ctrl"><span>Spacebar</span>กระโดด/ขึ้นบันได</div>
       <div class="ctrl"><span class="ctrl-highlight">🚪 Auto Door</span>เดินเข้าใกล้ประตูเพื่อเปิด</div>
     </div>
+
+    <div id="left-func-btns">
+      <button id="overviewBtn" class="vbtn btn-toggle off" onclick="toggleOverview()">🎥 Overview: OFF</button>
+      <button id="roofToggleBtn" class="vbtn btn-toggle" onclick="toggleRoof()">Roof: ON</button>
+      <button id="floor2ToggleBtn" class="vbtn btn-toggle" onclick="toggleFloor2()">Roof+2nd: ON</button>
+      <button id="ceilToggleBtn" class="vbtn btn-toggle" onclick="toggleCeiling()">Ceiling: ON</button>
+      <button id="furnToggleBtn" class="vbtn btn-toggle" onclick="toggleFurniture()">Furniture: ON</button>
+      <button id="winToggleBtn" class="vbtn btn-toggle off" onclick="toggleDoorsWindows()">Doors & Windows: CLOSED</button>
+      <button id="fpToggleBtn" class="vbtn btn-toggle off" onclick="toggleFirstPerson()">1st Person: OFF</button>
+      <button id="mobileToggleBtn" class="vbtn btn-toggle off" onclick="toggleMobileUI()">Mobile UI: OFF</button>
+    </div>
  
     <div id="view-btns">
       <button class="vbtn" onclick="setView('perspective')">Perspective</button>
@@ -172,15 +183,7 @@
       <button class="vbtn" onclick="setView('stair')">Stair</button>
       <button class="vbtn" onclick="setView('back')">Back</button>
       <button class="vbtn" onclick="setView('top')">Top</button>
-      <hr>
-      <button id="roofToggleBtn" class="vbtn btn-toggle" onclick="toggleRoof()">Roof: ON</button>
-      <button id="floor2ToggleBtn" class="vbtn btn-toggle" onclick="toggleFloor2()">Roof+2nd: ON</button>
-      <button id="winToggleBtn" class="vbtn btn-toggle off" onclick="toggleWindows()">Windows: CLOSED</button>
-      <button id="fpToggleBtn" class="vbtn btn-toggle off" onclick="toggleFirstPerson()">1st Person: OFF</button>
-      <button id="mobileToggleBtn" class="vbtn btn-toggle off" onclick="toggleMobileUI()">Mobile UI: OFF</button>
     </div>
- 
-    <button id="overviewBtn" class="vbtn btn-toggle off" onclick="toggleOverview()">🎥 Overview: OFF</button>
     
     <div id="fan-indicator">
       <p>🌀 FAN ROTATION</p>
@@ -266,7 +269,8 @@ const roofTopMat = new THREE.MeshStandardMaterial({ color: 0x2b2b2b, roughness: 
 // Furniture Materials
 const fWood = new THREE.MeshStandardMaterial({ color: 0x5c4033, roughness: 0.9 });
 const fDarkWood = new THREE.MeshStandardMaterial({ color: 0x2b1d14, roughness: 0.9 });
-const fFabric = new THREE.MeshStandardMaterial({ color: 0x5a6a7a, roughness: 1.0 });
+// บังคับเปลี่ยนสีโซฟาให้อ่อนนุ่มขึ้นโดยใช้ fFabric แทน fWhite
+const fFabric = new THREE.MeshStandardMaterial({ color: 0x8a95a5, roughness: 1.0, metalness: 0.0 }); 
 const fWhite = new THREE.MeshStandardMaterial({ color: 0xe0e0e0, roughness: 0.7 });
 const fBlack = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.4 });
 const fMetal = new THREE.MeshStandardMaterial({ color: 0x999999, metalness: 0.8, roughness: 0.3 });
@@ -278,10 +282,15 @@ const FL2 = H / 2;
 // ============================================================================
 // ---- FURNITURE & DECOR SYSTEM ----
 // ============================================================================
-function addFurn(type, x, y, z, rotY, parent) {
+let furnituresVisible = true;
+const furnitureMeshes = [];
+
+// เพิ่มพารามิเตอร์ Scale (sX, sY, sZ) เพื่อปรับขนาดโมเดลให้เข้ามุมได้พอดี
+function addFurn(type, x, y, z, rotY, parent, sX=1, sY=1, sZ=1) {
     const grp = new THREE.Group();
     grp.position.set(x, y, z);
     grp.rotation.y = rotY;
+    grp.scale.set(sX, sY, sZ);
 
     const makeMesh = (w, h, d, mat, mx, my, mz) => {
         const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
@@ -295,15 +304,48 @@ function addFurn(type, x, y, z, rotY, parent) {
         makeMesh(2.0, 0.5, 0.2, fFabric, 0, 0.4, -0.3); 
         makeMesh(0.2, 0.6, 0.8, fFabric, -0.9, 0, 0); 
         makeMesh(0.2, 0.6, 0.8, fFabric, 0.9, 0, 0); 
-    } else if(type === 'tvstand') {
-        makeMesh(2.0, 0.4, 0.4, fWood, 0, 0, 0);
-        makeMesh(1.6, 0.9, 0.05, fBlack, 0, 1.1, -0.32); 
+    } else if(type === 'l_sofa') {
+        makeMesh(0.9, 0.4, 2.4, fFabric, 0, 0, 0); 
+        makeMesh(0.2, 0.5, 2.4, fFabric, 0.35, 0.4, 0); 
+        makeMesh(0.9, 0.6, 0.2, fFabric, 0, 0, 1.1); 
+        makeMesh(1.8, 0.4, 0.9, fFabric, -1.35, 0, -0.75); 
+        makeMesh(2.7, 0.5, 0.2, fFabric, -0.9, 0.4, -1.1); 
+        makeMesh(0.2, 0.6, 0.9, fFabric, -2.15, 0, -0.75); 
+    } else if(type === 'u_sofa') {
+        // บังคับใช้ fFabric ทั้งหมด: โซฟารูปตัว U แบบย่อส่วน
+        // ลดความยาวเบาะให้ยื่นออกมาน้อยลง
+        makeMesh(0.6, 0.4, 1.4, fFabric, -0.9, 0, -0.3); // เบาะยื่นฝั่งซ้าย
+        makeMesh(0.6, 0.4, 1.4, fFabric, 0.9, 0, -0.3);  // เบาะยื่นฝั่งขวา
+        makeMesh(1.2, 0.4, 0.8, fFabric, 0, 0, -0.6);    // เบาะที่นั่งตรงกลาง
+        
+        // พนักพิงหลังสั้นลงรับกับตัวเบาะ (รวมความกว้าง 2.8 เมตร)
+        makeMesh(2.8, 0.6, 0.2, fFabric, 0, 0.4, -1.1); 
+        
+        // ที่วางแขนซ้ายและขวาสุด (หดสั้นลงตามเบาะ)
+        makeMesh(0.2, 0.6, 1.6, fFabric, -1.3, 0.4, -0.4); 
+        makeMesh(0.2, 0.6, 1.6, fFabric, 1.3, 0.4, -0.4);  
+    } else if(type === 'loft_tv_mount') {
+        makeMesh(1.6, 0.04, 0.3, fWood, 0, 0.4, 0.1);
+        makeMesh(1.6, 0.9, 0.04, fBlack, 0, 1.0, 0.04);
+    } else if(type === 'glass_coffee_table') {
+        makeMesh(0.8, 0.02, 0.8, glassMat, 0, 0.4, 0); 
+        makeMesh(0.8, 0.02, 0.8, fMetal, 0, 0.38, 0); 
+        makeMesh(0.02, 0.38, 0.02, fBlack, -0.35, 0, -0.35);
+        makeMesh(0.02, 0.38, 0.02, fBlack, 0.35, 0, -0.35);
+        makeMesh(0.02, 0.38, 0.02, fBlack, -0.35, 0, 0.35);
+        makeMesh(0.02, 0.38, 0.02, fBlack, 0.35, 0, 0.35);
     } else if(type === 'table') {
         makeMesh(1.6, 0.05, 0.9, fDarkWood, 0, 0.75, 0);
         makeMesh(0.05, 0.75, 0.05, fDarkWood, -0.7, 0, -0.35);
         makeMesh(0.05, 0.75, 0.05, fDarkWood, 0.7, 0, -0.35);
         makeMesh(0.05, 0.75, 0.05, fDarkWood, -0.7, 0, 0.35);
         makeMesh(0.05, 0.75, 0.05, fDarkWood, 0.7, 0, 0.35);
+    } else if(type === 'long_table') {
+        makeMesh(0.9, 0.05, 2.4, fDarkWood, 0, 0.75, 0); 
+        makeMesh(0.05, 0.75, 0.05, fBlack, -0.35, 0, -1.1);
+        makeMesh(0.05, 0.75, 0.05, fBlack, 0.35, 0, -1.1);
+        makeMesh(0.05, 0.75, 0.05, fBlack, -0.35, 0, 1.1);
+        makeMesh(0.05, 0.75, 0.05, fBlack, 0.35, 0, 1.1);
     } else if(type === 'chair') {
         makeMesh(0.4, 0.05, 0.4, fWood, 0, 0.45, 0);
         makeMesh(0.4, 0.4, 0.05, fWood, 0, 0.5, -0.175);
@@ -314,15 +356,27 @@ function addFurn(type, x, y, z, rotY, parent) {
     } else if(type === 'counter') {
         makeMesh(2.0, 0.85, 0.6, fDarkWood, 0, 0, 0);
         makeMesh(2.0, 0.05, 0.62, fWhite, 0, 0.85, 0);
+    } else if(type === 'plain_counter') {
+        makeMesh(1.0, 0.85, 0.6, fDarkWood, 0, 0, 0);
+        makeMesh(1.02, 0.05, 0.62, fWhite, 0, 0.85, 0);
+    } else if(type === 'stove_counter') {
+        makeMesh(1.0, 0.85, 0.6, fDarkWood, 0, 0, 0); 
+        makeMesh(1.02, 0.05, 0.62, fWhite, 0, 0.85, 0); 
+        makeMesh(0.6, 0.02, 0.4, fBlack, 0, 0.88, 0);
+        const fMat = new THREE.MeshStandardMaterial({color: 0xaa3333, roughness: 0.4});
+        makeMesh(0.15, 0.01, 0.15, fMat, -0.15, 0.89, -0.08);
+        makeMesh(0.15, 0.01, 0.15, fMat, 0.15, 0.89, -0.08);
+        makeMesh(0.15, 0.01, 0.15, fMat, -0.15, 0.89, 0.12);
+        makeMesh(0.15, 0.01, 0.15, fMat, 0.15, 0.89, 0.12);
     } else if(type === 'fridge') {
         makeMesh(0.82, 1.82, 0.65, fMetal, 0, 0, 0);
     } else if(type === 'kitchen_sink') {
-        makeMesh(0.6, 0.85, 0.8, fDarkWood, 0, 0, 0); 
-        makeMesh(0.62, 0.05, 0.82, fWhite, 0, 0.85, 0); 
+        makeMesh(0.8, 0.85, 0.6, fDarkWood, 0, 0, 0); 
+        makeMesh(0.82, 0.05, 0.62, fWhite, 0, 0.85, 0); 
         const fMat = new THREE.MeshStandardMaterial({color: 0x888888, metalness: 0.8, roughness: 0.2});
-        makeMesh(0.4, 0.15, 0.5, fMat, 0, 0.85, 0); 
-        makeMesh(0.04, 0.2, 0.04, fMat, -0.2, 0.9, 0); 
-        makeMesh(0.15, 0.04, 0.04, fMat, -0.15, 1.1, 0); 
+        makeMesh(0.5, 0.15, 0.4, fMat, 0, 0.85, 0); 
+        makeMesh(0.04, 0.2, 0.04, fMat, -0.2, 0.9, -0.1); 
+        makeMesh(0.15, 0.04, 0.04, fMat, -0.15, 1.1, -0.1); 
     } else if(type === 'toilet') {
         makeMesh(0.3, 0.4, 0.4, fWhite, 0, 0, 0.1);
         makeMesh(0.4, 0.4, 0.2, fWhite, 0, 0.4, -0.1);
@@ -355,8 +409,68 @@ function addFurn(type, x, y, z, rotY, parent) {
         makeMesh(0.5, 0.02, 0.02, fMetal, -0.55, 0.05, 0); 
         makeMesh(0.5, 0.02, 0.02, fMetal, 0.55, 0.05, 0); 
         makeMesh(1.2, 0.02, 0.02, fMetal, 0, 0.6, 0); 
+    } else if(type === 'potted_plant') {
+        // กระถาง (Pot)
+        const potMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.9 });
+        const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.15, 0.4, 16), potMat);
+        pot.position.set(0, 0.2, 0);
+        pot.castShadow = true; pot.receiveShadow = true;
+        grp.add(pot);
+
+        // ลำต้น (Trunk)
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.6, 8), fWood);
+        trunk.position.set(0, 0.6, 0);
+        trunk.castShadow = true; trunk.receiveShadow = true;
+        grp.add(trunk);
+
+        // พุ่มใบ (Leaves)
+        const leafMat = new THREE.MeshStandardMaterial({ color: 0x2d5a27, roughness: 0.8 });
+        const leaf1 = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 16), leafMat);
+        leaf1.position.set(0, 0.9, 0);
+        leaf1.castShadow = true; leaf1.receiveShadow = true;
+        grp.add(leaf1);
+        
+        const leaf2 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), leafMat);
+        leaf2.position.set(0.15, 0.75, 0.15);
+        leaf2.castShadow = true; leaf2.receiveShadow = true;
+        grp.add(leaf2);
+
+        const leaf3 = new THREE.Mesh(new THREE.SphereGeometry(0.2, 16, 16), leafMat);
+        leaf3.position.set(-0.15, 0.8, -0.1);
+        leaf3.castShadow = true; leaf3.receiveShadow = true;
+        grp.add(leaf3);
     }
     parent.add(grp);
+    furnitureMeshes.push(grp);
+}
+
+function addLoftLamp(x, y, z, wireLen, parent = scene) {
+    const grp = new THREE.Group();
+    grp.position.set(x, y, z);
+    
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.05, 16), fBlack);
+    grp.add(base);
+
+    const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, wireLen, 8), fBlack);
+    wire.position.y = -wireLen / 2;
+    grp.add(wire);
+
+    const shade = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.25, 0.2, 16, 1, true), fBlack);
+    shade.material.side = THREE.DoubleSide;
+    shade.position.y = -wireLen;
+    grp.add(shade);
+    
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 16), new THREE.MeshStandardMaterial({ color: 0xffddaa, emissive: 0xffaa00, emissiveIntensity: 2.0 }));
+    bulb.position.y = -wireLen - 0.05;
+    grp.add(bulb);
+    
+    const light = new THREE.PointLight(0xffcc88, 1.5, 6);
+    light.position.y = -wireLen - 0.1;
+    light.castShadow = true;
+    grp.add(light);
+    
+    parent.add(grp);
+    furnitureMeshes.push(grp);
 }
 
 function addArt(cx, cy, cz, w, h, rotY, bgColor, fgColor, parent = scene) {
@@ -380,6 +494,7 @@ function addArt(cx, cy, cz, w, h, rotY, bgColor, fgColor, parent = scene) {
     grp.add(art2);
     
     parent.add(grp);
+    furnitureMeshes.push(grp);
 }
 
 const exhaustFans = [];
@@ -407,6 +522,7 @@ function addExhaustFan(x, y, z, rotY, parent = scene) {
     exhaustFans.push(blades);
 
     parent.add(grp);
+    furnitureMeshes.push(grp);
 }
 
 // ============================================================================
@@ -415,15 +531,17 @@ function addExhaustFan(x, y, z, rotY, parent = scene) {
 const interactiveDoors = [];
 const interactiveWindows = [];
 let windowsOpen = false;
+let doorsWindowsOpen = false;
 
-window.toggleWindows = function() {
-    windowsOpen = !windowsOpen;
+window.toggleDoorsWindows = function() {
+    doorsWindowsOpen = !doorsWindowsOpen;
+    windowsOpen = doorsWindowsOpen; // Sync window states
     const btn = document.getElementById('winToggleBtn');
-    if(windowsOpen) {
-        btn.innerText = 'Windows: OPEN';
+    if(doorsWindowsOpen) {
+        btn.innerText = 'Doors & Windows: OPEN';
         btn.classList.remove('off');
     } else {
-        btn.innerText = 'Windows: CLOSED';
+        btn.innerText = 'Doors & Windows: CLOSED';
         btn.classList.add('off');
     }
 };
@@ -640,7 +758,7 @@ addBox(14.0, 0.02, 1.0, walkMat, -4.0, 0.01, -5.0, false);
 const deckMat = new THREE.MeshStandardMaterial({ color: 0x4a3b2c, roughness: 0.9 });
 addBox(4.0, 0.05, 5.0, deckMat, 4.5, 0.025, -2.0, false);
  
-// ขยับหน้าต่าง 4 บาน (หลังบ้าน) ให้อยู่ตรงกลาง (X = 0)
+// ขยับหน้าต่าง 4 บาน (หลังบ้าน)
 const WZ = -L/2;
 const winW = 1.0, winH = 1.4, winBot = 0.9, winTop = winBot + winH;
 addBox(0.46, FL2, WALL_T, wallMat, -1.77, FL2/2, WZ, true); 
@@ -650,45 +768,34 @@ addBox(3.08, tallWinBot, WALL_T, wallMat, 0, tallWinBot/2, WZ, true);
 addBox(3.08, FL2 - tallWinTop, WALL_T, wallMat, 0, tallWinTop + (FL2 - tallWinTop)/2, WZ, true); 
 addTallWindowGroup(0, WZ, 4, 'z', 0); 
 
-// [MODIFIED] เปลี่ยนผนังบล็อกแก้วเหนือโต๊ะกินข้าวชั้น 2 เป็นผนังปูน + หน้าต่างบานกระทุ้ง 2x1 ม.
+// ผนังปูน + หน้าต่างบานกระทุ้ง 2x1 ม. (ชั้น 2 หลังบ้าน)
 const aw2W = 2.0, aw2H = 1.0, aw2Z = WZ, aw2X = 0, aw2Y = FL2 + 1.55;
-
-// ผนังบล็อกแก้วด้านข้าง ซ้าย-ขวา
 buildGlassBlockWall(-1.5, FL2, aw2Z, 1.0, H - FL2, 'z', floor2Group);
 buildGlassBlockWall(1.5, FL2, aw2Z, 1.0, H - FL2, 'z', floor2Group);
-// ผนังปูนด้านล่างและบนหน้าต่าง
 addBox(aw2W, 1.05, WALL_T, wallMat, aw2X, FL2 + 0.525, aw2Z, true, floor2Group);
 addBox(aw2W, 1.05, WALL_T, wallMat, aw2X, FL2 + 2.575, aw2Z, true, floor2Group);
-
-// กรอบหน้าต่าง (ขอบดำ)
 const winFw2 = 0.04;
 addBox(aw2W, winFw2, WALL_T + 0.04, frameMat, aw2X, aw2Y + aw2H/2 - winFw2/2, aw2Z, false, floor2Group);
 addBox(aw2W, winFw2, WALL_T + 0.04, frameMat, aw2X, aw2Y - aw2H/2 + winFw2/2, aw2Z, false, floor2Group);
 addBox(winFw2, aw2H - winFw2*2, WALL_T + 0.04, frameMat, aw2X - aw2W/2 + winFw2/2, aw2Y, aw2Z, false, floor2Group);
 addBox(winFw2, aw2H - winFw2*2, WALL_T + 0.04, frameMat, aw2X + aw2W/2 - winFw2/2, aw2Y, aw2Z, false, floor2Group);
 addBox(winFw2, aw2H - winFw2*2, WALL_T + 0.04, frameMat, aw2X, aw2Y, aw2Z, false, floor2Group);
-
-// บานกระจกแบบกระทุ้ง (2 บานย่อย)
 const paneW2 = (aw2W - winFw2*3) / 2;
 const paneH2 = aw2H - winFw2*2;
 const p1X = aw2X - aw2W/2 + winFw2 + paneW2/2;
 const p2X = aw2X + aw2W/2 - winFw2 - paneW2/2;
-
 function addAwningSashZ(cx, cy, cz, pW, pH, rotX, parent) {
     const pivot = new THREE.Group();
     pivot.position.set(cx, cy + pH/2, cz + 0.01); 
-    
     const sw = 0.04;
     addBox(sw, pH, sw, frameMat, -pW/2 + sw/2, -pH/2, 0, false, pivot);
     addBox(sw, pH, sw, frameMat, pW/2 - sw/2, -pH/2, 0, false, pivot);
     addBox(pW - sw*2, sw, sw, frameMat, 0, -sw/2, 0, false, pivot);
     addBox(pW - sw*2, sw, sw, frameMat, 0, -pH + sw/2, 0, false, pivot);
     addBox(pW - sw*2, pH - sw*2, 0.02, glassMat, 0, -pH/2, 0, false, pivot);
-    
     parent.add(pivot);
     interactiveWindows.push({ mesh: pivot, type: 'awning', openRotX: rotX, openRotZ: 0 });
 }
-
 addAwningSashZ(p1X, aw2Y, aw2Z, paneW2, paneH2, Math.PI/6, floor2Group);
 addAwningSashZ(p2X, aw2Y, aw2Z, paneW2, paneH2, Math.PI/6, floor2Group);
 
@@ -708,21 +815,162 @@ addBox(1.0, 0.18, 3.0, fl2Mat, -5.5, FL2, -3.0, true, floor2Group);
 addBox(1.0, 0.18, 3.0, fl2Mat, -2.5, FL2, -3.0, true, floor2Group);
 
 const stairMat = new THREE.MeshStandardMaterial({ color: 0x8a7a6a, roughness: 0.8 });
-const whiteRailMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.6, metalness: 0.1 }); 
 addBox(2.0, 0.155, 1.0, stairMat, -4.0, 1.55 - 0.0775, -4.0, false);
+
 for (let i = 0; i < 10; i++) {
-  addBox(1.0, 0.155, 0.2, stairMat, -3.5, 0.0775 + i * 0.155, -1.6 - i * 0.2, false);
-  addBox(1.0, 0.155, 0.2, stairMat, -4.5, 1.55 + 0.0775 + i * 0.155, -3.4 + i * 0.2, false);
+  addBox(0.9, 0.155, 0.2, stairMat, -3.45, 0.0775 + i * 0.155, -1.6 - i * 0.2, false);
+  addBox(0.9, 0.155, 0.2, stairMat, -4.55, 1.55 + 0.0775 + i * 0.155, -3.4 + i * 0.2, false);
 }
-addBox(0.04, FL2, 2.0, wallMat, -4.0, FL2/2, -2.5, true); 
-addBox(0.04, 0.9, 2.0, wallMat, -4.0, FL2 + 0.45, -2.5, true, floor2Group); 
+
+// ============================================================================
+// --- Modern Loft Seamless Glass Frame Handrails ---
+// ============================================================================
+const ft = 0.05; // ความหนาโครงเหล็ก 0.05 ม.
+
+// ฟังก์ชันราวกันตกกระจกมาตรฐาน (ใช้กับระเบียงและชั้น 2)
+// ยกระดับ Bottom Rail ให้สูงจากพื้นขึ้นมา 0.1 ม.
+function addGlassRailing(cx, floorY, cz, w, facing, parent=scene) {
+    const bRailY = floorY + 0.125;  // แกนกลางเหล็กล่าง (0.1m + 0.05/2)
+    const tRailY = floorY + 0.975;  // แกนกลางเหล็กบน (1.0m - 0.05/2)
+    const glassY = floorY + 0.55;   // แกนกลางกระจก
+    const glassH = 0.8;             // ความสูงกระจกพอดีกรอบ
+    const postH = 1.0;
+    const postY = floorY + 0.5;
+
+    if (facing === 'z') { 
+        addBox(w, ft, ft, frameMat, cx, tRailY, cz, false, parent);
+        addBox(w, ft, ft, frameMat, cx, bRailY, cz, false, parent);
+        addBox(w - ft, glassH, 0.02, glassMat, cx, glassY, cz, false, parent);
+        const numPosts = Math.max(2, Math.ceil(w) + 1);
+        for(let i=0; i<numPosts; i++) {
+            const px = cx - w/2 + ft/2 + i * ((w - ft)/(numPosts - 1));
+            addBox(ft, postH, ft, frameMat, px, postY, cz, false, parent);
+        }
+    } else { 
+        addBox(ft, ft, w, frameMat, cx, tRailY, cz, false, parent);
+        addBox(ft, ft, w, frameMat, cx, bRailY, cz, false, parent);
+        addBox(0.02, glassH, w - ft, glassMat, cx, glassY, cz, false, parent);
+        const numPosts = Math.max(2, Math.ceil(w) + 1);
+        for(let i=0; i<numPosts; i++) {
+            const pz = cz - w/2 + ft/2 + i * ((w - ft)/(numPosts - 1));
+            addBox(ft, postH, ft, frameMat, cx, postY, pz, false, parent);
+        }
+    }
+}
+
+// ---------------------------------------------------------------
+// ราวบันได: คำนวณ Pitch Line Offset ห้ามจมปูนเด็ดขาด
+// ---------------------------------------------------------------
+const BR_N = [
+    new THREE.Vector3(-3.85, 0.28, -1.5),     // จุดล่างบันไดขาขึ้น
+    new THREE.Vector3(-3.85, 1.83, -3.5),     // มุมเลี้ยวชานพัก 1
+    new THREE.Vector3(-4.15, 1.83, -3.5),     // มุมเลี้ยวชานพัก 2
+    new THREE.Vector3(-4.15, 3.225, -1.7),    // ยอดบันไดขาลง
+    new THREE.Vector3(-3.975, 3.225, -1.5)    // จุดบรรจบชนเสาราวกันตกชั้น 2 พอดีเป๊ะ
+];
+const TR_N = [
+    new THREE.Vector3(-3.85, 1.13, -1.5),     
+    new THREE.Vector3(-3.85, 2.68, -3.5),     
+    new THREE.Vector3(-4.15, 2.68, -3.5),     
+    new THREE.Vector3(-4.15, 4.075, -1.7),    
+    new THREE.Vector3(-3.975, 4.075, -1.5)    
+];
+
+function addFrameLine(vA, vB) {
+    const d = vA.distanceTo(vB);
+    const m = new THREE.Mesh(new THREE.BoxGeometry(ft, ft, d), frameMat);
+    m.position.copy(vA).lerp(vB, 0.5); m.lookAt(vB); m.castShadow = true; scene.add(m);
+    
+    const j = new THREE.Mesh(new THREE.BoxGeometry(ft, ft, ft), frameMat);
+    j.position.copy(vA); j.castShadow = true; scene.add(j);
+    const j2 = new THREE.Mesh(new THREE.BoxGeometry(ft, ft, ft), frameMat);
+    j2.position.copy(vB); j2.castShadow = true; scene.add(j2);
+}
+
+// สร้างกรอบเหล็กบันได
+for (let i = 0; i < 4; i++) {
+    addFrameLine(TR_N[i], TR_N[i+1]);
+    addFrameLine(BR_N[i], BR_N[i+1]);
+}
+
+// ฟังก์ชันสร้างแผ่นกระจกสี่เหลี่ยมด้านขนานให้สอดเข้ากลางกรอบเป๊ะๆ
+function createStairGlass(b1, b2, t1, t2) {
+    const dir = new THREE.Vector3().subVectors(b2, b1).normalize();
+    const marginH = ft / 2;
+    const dirXZ = new THREE.Vector3(dir.x, 0, dir.z).normalize();
+    
+    // หดพิกัดแผ่นกระจกเข้า 0.025ม. เพื่อหลบเสาและกรอบบน/ล่าง
+    const sB1 = b1.clone().addScaledVector(dirXZ, marginH);
+    const sT1 = t1.clone().addScaledVector(dirXZ, marginH);
+    const sB2 = b2.clone().addScaledVector(dirXZ, -marginH);
+    const sT2 = t2.clone().addScaledVector(dirXZ, -marginH);
+    
+    sB1.y += marginH; sB2.y += marginH;
+    sT1.y -= marginH; sT2.y -= marginH;
+    
+    if (sB1.distanceTo(sB2) < 0.01) return;
+
+    const normal = new THREE.Vector3().crossVectors(dirXZ, new THREE.Vector3(0, 1, 0)).normalize();
+    const halfT = 0.01; 
+
+    const p1 = sB1.clone().addScaledVector(normal, halfT);
+    const p2 = sB2.clone().addScaledVector(normal, halfT);
+    const p3 = sT2.clone().addScaledVector(normal, halfT);
+    const p4 = sT1.clone().addScaledVector(normal, halfT);
+    
+    const p5 = sB1.clone().addScaledVector(normal, -halfT);
+    const p6 = sB2.clone().addScaledVector(normal, -halfT);
+    const p7 = sT2.clone().addScaledVector(normal, -halfT);
+    const p8 = sT1.clone().addScaledVector(normal, -halfT);
+    
+    const vertices = new Float32Array([
+        p1.x, p1.y, p1.z,  p2.x, p2.y, p2.z,  p3.x, p3.y, p3.z, p1.x, p1.y, p1.z,  p3.x, p3.y, p3.z,  p4.x, p4.y, p4.z,
+        p6.x, p6.y, p6.z,  p5.x, p5.y, p5.z,  p8.x, p8.y, p8.z, p6.x, p6.y, p6.z,  p8.x, p8.y, p8.z,  p7.x, p7.y, p7.z,
+        p4.x, p4.y, p4.z,  p3.x, p3.y, p3.z,  p7.x, p7.y, p7.z, p4.x, p4.y, p4.z,  p7.x, p7.y, p7.z,  p8.x, p8.y, p8.z,
+        p5.x, p5.y, p5.z,  p6.x, p6.y, p6.z,  p2.x, p2.y, p2.z, p5.x, p5.y, p5.z,  p2.x, p2.y, p2.z,  p1.x, p1.y, p1.z,
+        p5.x, p5.y, p5.z,  p1.x, p1.y, p1.z,  p4.x, p4.y, p4.z, p5.x, p5.y, p5.z,  p4.x, p4.y, p4.z,  p8.x, p8.y, p8.z,
+        p2.x, p2.y, p2.z,  p6.x, p6.y, p6.z,  p7.x, p7.y, p7.z, p2.x, p2.y, p2.z,  p7.x, p7.y, p7.z,  p3.x, p3.y, p3.z,
+    ]);
+    
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    geo.computeVertexNormals();
+    const mesh = new THREE.Mesh(geo, glassMat); scene.add(mesh);
+}
+
+// คำนวณจุดตัดเสากลางเพื่อแบ่งแผงกระจก
+const B_P2 = BR_N[0].clone().lerp(BR_N[1], 1.0/2.0);
+const T_P2 = TR_N[0].clone().lerp(TR_N[1], 1.0/2.0);
+const B_P5 = BR_N[2].clone().lerp(BR_N[3], 0.8/1.8);
+const T_P5 = TR_N[2].clone().lerp(TR_N[3], 0.8/1.8);
+
+createStairGlass(BR_N[0], B_P2, TR_N[0], T_P2);       
+createStairGlass(B_P2, BR_N[1], T_P2, TR_N[1]);     
+createStairGlass(BR_N[1], BR_N[2], TR_N[1], TR_N[2]); // ชานพัก 
+createStairGlass(BR_N[2], B_P5, TR_N[2], T_P5);     
+createStairGlass(B_P5, BR_N[3], T_P5, TR_N[3]);       
+createStairGlass(BR_N[3], BR_N[4], TR_N[3], TR_N[4]); 
+
+// ปักเสาหลัก (Vertical Posts) เฉพาะจุดสำคัญ ปรับแก้ให้หยุดพอดีใต้ราวจับ
+function addStairPost(x, z, floorY, railCenterY) { 
+    const topY = railCenterY - ft/2; // หักลบความหนาราจับเพื่อให้จบใต้ท้องราวพอดี
+    addBox(ft, topY - floorY, ft, frameMat, x, floorY + (topY - floorY)/2, z, false, scene); 
+}
+addStairPost(-3.85, -1.5, 0, 1.13);          
+addStairPost(-3.85, -2.5, 0.775, 1.905);            
+addStairPost(-3.85, -3.5, 1.55, 2.68);          
+addStairPost(-4.15, -3.5, 1.55, 2.68);          
+addStairPost(-4.15, -2.7, 2.325, 3.3);          
+addStairPost(-4.15, -1.7, 3.1, 4.075);             
+
+// ---------------------------------------------------------------
+
 addBox(WALL_T, FL2, 3.0, wallMat, -3.0, FL2/2, -3.0, true); 
 addBox(WALL_T, H - FL2, 3.0, wallMat, -3.0, FL2 + (H - FL2)/2, -3.0, true, floor2Group); 
 
-const inRailY = FL2 + 0.59; 
-addGlassRailing(-3.5, inRailY, -1.5, 1.0, 1.0, 'z', floor2Group); 
-addGlassRailing(-W/2 + 0.04, inRailY, -2.25, 4.5, 1.0, 'x', floor2Group);
-
+// อัปเดตราวกันตกชั้น 2 ให้เป็นมาตรฐานเดียวกัน (ยกลอย 0.1 ม.)
+addGlassRailing(-3.5, FL2, -1.5, 1.0, 'z', floor2Group); 
+addGlassRailing(-1.96, FL2, -2.25, 4.5, 'x', floor2Group);
 
 const upLight1 = new THREE.PointLight(0xffe0b0, 2.0, 6); upLight1.position.set(R2X, FL2 + 2.0, -L/4); floor2Group.add(upLight1);
 const upLight2 = new THREE.PointLight(0xffe0b0, 2.0, 6); upLight2.position.set(R2X, FL2 + 2.0, L/4); floor2Group.add(upLight2);
@@ -763,48 +1011,36 @@ addSwingDoor(0.04, doorH - 0.05, 0.7, doorMat, outerWallX, doorH/2, doorZ, '-z',
 
 addBox(WALL_T, H - FL2, 1.5, wallMat, -10.0, FL2 + (H - FL2)/2, -0.75, true, floor2Group);
 
-// เปลี่ยนเฉพาะผนังเหนือประตูให้เป็นปูน โดยแบ่งบล็อกแก้วเป็น 2 ช่วง
-// ช่วงที่ 1: บล็อกแก้วด้านซ้าย (ยาว 5.75ม.)
+// บล็อกแก้ว 2 ช่วง
 buildGlassBlockWall(W/2, FL2, -1.625, 5.75, H - FL2, 'x', floor2Group); 
-// ช่วงที่ 2: บล็อกแก้วด้านขวา (ยาว 1.25ม.)
 buildGlassBlockWall(W/2, FL2, 3.875, 1.25, H - FL2, 'x', floor2Group); 
 
-// ผนังปูน 2 เมตร เหนือประตู + หน้าต่างบานกระทุ้ง 2x1 ม. แบ่งครึ่ง
+// ผนังปูน 2 เมตร เหนือประตู + หน้าต่างบานกระทุ้ง 2x1 ม. 
 const awW = 2.0, awH = 1.0, awZ = 2.25, awX = W/2, awY = FL2 + 1.55;
-
-// ผนังปูนด้านล่างและบนหน้าต่างบานกระทุ้ง
 addBox(WALL_T, 1.05, awW, wallMat, awX, FL2 + 0.525, awZ, true, floor2Group);
 addBox(WALL_T, 1.05, awW, wallMat, awX, FL2 + 2.575, awZ, true, floor2Group);
-
-// กรอบหน้าต่าง (ขอบดำ)
 const winFw = 0.04;
 addBox(WALL_T + 0.04, winFw, awW, frameMat, awX, awY + awH/2 - winFw/2, awZ, false, floor2Group);
 addBox(WALL_T + 0.04, winFw, awW, frameMat, awX, awY - awH/2 + winFw/2, awZ, false, floor2Group);
 addBox(WALL_T + 0.04, awH - winFw*2, winFw, frameMat, awX, awY, awZ - awW/2 + winFw/2, false, floor2Group); 
 addBox(WALL_T + 0.04, awH - winFw*2, winFw, frameMat, awX, awY, awZ + awW/2 - winFw/2, false, floor2Group); 
 addBox(WALL_T + 0.04, awH - winFw*2, winFw, frameMat, awX, awY, awZ, false, floor2Group); 
-
-// บานกระจกแบบกระทุ้ง (2 บานย่อย)
 const paneW = (awW - winFw*3) / 2;
 const paneH = awH - winFw*2;
 const p1Z = awZ - awW/2 + winFw + paneW/2;
 const p2Z = awZ + awW/2 - winFw - paneW/2;
-
 function addAwningSashX(cx, cy, cz, pW, pH, rotZ, parent) {
     const pivot = new THREE.Group();
     pivot.position.set(cx + 0.01, cy + pH/2, cz);
-    
     const sw = 0.04;
     addBox(sw, pH, sw, frameMat, 0, -pH/2, -pW/2 + sw/2, false, pivot);
     addBox(sw, pH, sw, frameMat, 0, -pH/2, pW/2 - sw/2, false, pivot);
     addBox(sw, sw, pW - sw*2, frameMat, 0, -sw/2, 0, false, pivot);
     addBox(sw, sw, pW - sw*2, frameMat, 0, -pH + sw/2, 0, false, pivot);
     addBox(0.02, pH - sw*2, pW - sw*2, glassMat, 0, -pH/2, 0, false, pivot);
-    
     parent.add(pivot);
     interactiveWindows.push({ mesh: pivot, type: 'awning', openRotX: 0, openRotZ: rotZ });
 }
-
 addAwningSashX(awX, awY, p1Z, paneW, paneH, Math.PI/6, floor2Group);
 addAwningSashX(awX, awY, p2Z, paneW, paneH, Math.PI/6, floor2Group);
 
@@ -882,22 +1118,19 @@ addRoomFloor(-8, 2.25, FL2, false, floor2Group);
 addRoomFloor(-4, 2.25, 0, true, scene); 
 addRoomFloor(-8, 2.25, 0, true, scene); 
 
-// ฝ้าเพดาน (ระดับใต้คาน)
+// เก็บฝ้าเพดานเข้า Array สำหรับระบบ เปิด-ปิด
+let ceilingsVisible = true;
+const ceilingMeshes = [];
 const ceilY1 = FL2 - 0.3; // 2.8m
 const ceilY2 = H - 0.3;   // 5.9m
 
-// ฝ้าชั้น 1 
-addBox(5.0, 0.02, 9.0, ceilMat, -7.5, ceilY1 - 0.01, 0, false, floor2Group); // โซนซ้าย
-addBox(3.0, 0.02, 6.0, ceilMat, -3.5, ceilY1 - 0.01, 1.5, false, floor2Group); // โซนหน้าบันได
-addBox(1.0, 0.02, 3.0, ceilMat, -2.5, ceilY1 - 0.01, -3.0, false, floor2Group); // โซนข้างบันได
-
-// แผงปิดขอบฝ้า (Fascia) หน้าบันได
-const fasciaH = 0.3;
-const fasciaY = FL2 - fasciaH / 2;
-addBox(2.0, fasciaH, 0.02, ceilMat, -4.0, fasciaY, -1.5, false, floor2Group); // ปิดแหว่งโถงบันไดชั้น 1
+// ฝ้าชั้น 1 ถูกย้ายไปที่ scene เพื่อไม่ให้หายไปตอนปิดชั้น 2
+ceilingMeshes.push(addBox(5.0, 0.02, 9.0, ceilMat, -7.5, ceilY1 - 0.01, 0, false, scene)); 
+ceilingMeshes.push(addBox(3.0, 0.02, 6.0, ceilMat, -3.5, ceilY1 - 0.01, 1.5, false, scene)); 
+ceilingMeshes.push(addBox(1.0, 0.02, 3.0, ceilMat, -2.5, ceilY1 - 0.01, -3.0, false, scene)); 
 
 // ฝ้าชั้น 2
-addBox(12.0, 0.02, 9.0, ceilMat, -4.0, ceilY2 - 0.01, 0, false, floor2Group); 
+ceilingMeshes.push(addBox(12.0, 0.02, 9.0, ceilMat, -4.0, ceilY2 - 0.01, 0, false, floor2Group)); 
 
 const bathDoorW = 0.8, bathDoorH = 2.0;
 addBox(1.5, FL2, WALL_T, wallMat, -6.75, FL2/2, -1.5, true); 
@@ -919,7 +1152,7 @@ addSwingDoor(bathDoorW - 0.1, bathDoorH - 0.05, 0.04, bathDoorMat, -5.6, FL2 + b
 const balconyFloorMat = new THREE.MeshStandardMaterial({ color: 0x4a3b2c, roughness: 0.9, metalness: 0.0 });
 addBox(2.46, 0.02, 2.96, balconyFloorMat, -8.75, FL2 + 0.09, -3.0, false, floor2Group);
 
-// ---- ประตูระเบียง (เปลี่ยนเป็น 2 เมตร ฟิกซ์ 1 เลื่อน 1) ----
+// ---- ประตูระเบียง ----
 const gdW = 2.0, gdH = 2.0, gdX = -8.75, gdZ = -1.5, gdY = FL2 + gdH/2;
 addBox(gdW, 0.05, 0.1, frameMat, gdX, FL2 + 0.025, gdZ, false, floor2Group);
 addBox(gdW, 0.05, 0.1, frameMat, gdX, FL2 + gdH - 0.025, gdZ, false, floor2Group);
@@ -940,29 +1173,14 @@ addBox(gdW, (H - FL2) - gdH, WALL_T, wallMat, gdX, FL2 + gdH + ((H - FL2) - gdH)
 addBox(0.25, H - FL2, WALL_T, wallMat, -9.875, FL2 + (H - FL2)/2, gdZ, true, floor2Group); 
 addBox(0.25, H - FL2, WALL_T, wallMat, -7.625, FL2 + (H - FL2)/2, gdZ, true, floor2Group); 
 
-
 const nbX = -4.0, nbW = 12.0, nbZ = -5.0, nbD = 1.0, nbY = FL2 + 0.09; 
 addBox(nbW, 0.02, nbD, balconyFloorMat, nbX, nbY, nbZ, false, floor2Group);
 
-const railH = 1.0, railY = FL2 + 0.1 + railH/2; 
-function addGlassRailing(cx, cy, cz, w, h, facing, parent=floor2Group) {
-  const frameT = 0.05;
-  if (facing === 'z') {
-      addBox(w, h, 0.02, glassMat, cx, cy, cz, false, parent);
-      addBox(w, frameT, frameT, frameMat, cx, cy + h/2, cz, false, parent);
-      addBox(w, frameT, frameT, frameMat, cx, cy - h/2, cz, false, parent);
-      for(let i=0; i<=Math.floor(w); i++) addBox(frameT, h, frameT, frameMat, cx - w/2 + i*(w/Math.floor(w)), cy, cz, false, parent);
-  } else {
-      addBox(0.02, h, w, glassMat, cx, cy, cz, false, parent);
-      addBox(frameT, frameT, w, frameMat, cx, cy + h/2, cz, false, parent);
-      addBox(frameT, frameT, w, frameMat, cx, cy - h/2, cz, false, parent);
-      for(let i=0; i<=Math.floor(w); i++) addBox(frameT, h, frameT, frameMat, cx, cy, cz - w/2 + i*(w/Math.floor(w)), false, parent);
-  }
-}
-addGlassRailing(-10.0, railY, -3.5, 4.0, railH, 'x'); 
-addGlassRailing(-9.25, railY, -5.5, 1.5, railH, 'z'); 
-addGlassRailing(-2.75, railY, -5.5, 9.5, railH, 'z'); 
-addGlassRailing(2.0, railY, -5.0, 1.0, railH, 'x'); 
+// สร้างราวกันตกกระจกระเบียงด้วยฟังก์ชันใหม่ที่ลอย 0.1 ม. เช่นกัน
+addGlassRailing(-10.0, FL2 + 0.09, -3.5, 4.0, 'x', floor2Group); 
+addGlassRailing(-9.25, FL2 + 0.09, -5.5, 1.5, 'z', floor2Group); 
+addGlassRailing(-2.75, FL2 + 0.09, -5.5, 9.5, 'z', floor2Group); 
+addGlassRailing(2.0, FL2 + 0.09, -5.0, 1.0, 'x', floor2Group); 
 
 addVentBlocks(-8.0, FL2/2, -5.5, 1.0, FL2, 'z', scene);
 const topVentH = (H - FL2) - 0.2; 
@@ -1085,7 +1303,7 @@ const nwW = 0.5, nwH = tallWinH, nwY = tallWinBot + tallWinH/2;
     addBox(nwW - fw*2, nwH - fw*2, 0.02, glassMat, nx, nwY, fWallZ, false); 
 });
 
-// เปลี่ยนหน้าต่างกระจกบล็อกหน้าบ้านชั้น 2 เป็นกำแพงปูนทึบ (เฉพาะฝั่งหน้าบ้าน)
+// หน้าต่างกระจกบล็อกหน้าบ้านชั้น 2 เป็นกำแพงปูนทึบ
 addBox(W, H - FL2, WALL_T, wallMat, 0, FL2 + (H - FL2)/2, L/2, true, floor2Group);
 
 const bayW = 4.5;
@@ -1167,7 +1385,9 @@ function makeFan(x, z) {
   bladesGroup.position.y = -0.08; group.add(bladesGroup);
   const globe = new THREE.Mesh(new THREE.SphereGeometry(0.09, 16, 12, 0, Math.PI*2, 0, Math.PI*0.6), new THREE.MeshStandardMaterial({ color: 0xffffee, emissive: 0xffe090, emissiveIntensity: 0.6, transparent: true, opacity: 0.85, roughness: 0.1 }));
   globe.position.y = -0.15; globe.rotation.x = Math.PI; group.add(globe);
-  scene.add(group); return { group, bladesGroup };
+  scene.add(group); 
+  furnitureMeshes.push(group);
+  return { group, bladesGroup };
 }
 const fan1 = makeFan(0, -L/4); const fan2 = makeFan(0, L/4);
  
@@ -1177,50 +1397,74 @@ gridHelper.position.y = 0.01; scene.add(gridHelper);
 // ============================================================================
 // ---- ADDING ALL FURNITURE & DECOR ----
 // ============================================================================
-addFurn('sofa', 0.5, 0, 2.0, -Math.PI/2, scene);
-addFurn('tvstand', -1.6, 0, 2.0, Math.PI/2, scene);
+// ---- โซนนั่งเล่น (โซนหลัง) ----
+addFurn('loft_tv_mount', -2.85, 0, -3.0, Math.PI/2, scene);
+// โซฟา
+addFurn('l_sofa', 1.3, 0, -3.1, 0, scene);
+// จัดโต๊ะกาแฟกระจก ให้อยู่กึ่งกลางสเปซระหว่างเบาะซ้าย-ขวาพอดี 
+addFurn('glass_coffee_table', 0.25, 0, -2.8, 0, scene);
 
-addFurn('table', 0, 0, -3.0, 0, scene);
-addFurn('chair', 0, 0, -2.3, 0, scene);
-addFurn('chair', 0, 0, -3.7, Math.PI, scene);
-addFurn('chair', -1.0, 0, -3.0, Math.PI/2, scene); 
-addFurn('chair', 1.0, 0, -3.0, -Math.PI/2, scene); 
+// ---- โซนทานอาหาร (โซนหน้า) ----
+addFurn('long_table', 0, 0, 2.25, 0, scene);
+addFurn('chair', -0.6, 0, 1.45, Math.PI/2, scene);
+addFurn('chair', -0.6, 0, 2.25, Math.PI/2, scene);
+addFurn('chair', -0.6, 0, 3.05, Math.PI/2, scene);
+addFurn('chair', 0.6, 0, 1.45, -Math.PI/2, scene);
+addFurn('chair', 0.6, 0, 2.25, -Math.PI/2, scene);
+addFurn('chair', 0.6, 0, 3.05, -Math.PI/2, scene);
 
-addFurn('counter', -8.75, 0, -4.2, 0, scene); 
-addFurn('fridge', -9.63, 0, -1.575, Math.PI/2, scene);
-addFurn('kitchen_sink', -9.63, 0, -2.45, 0, scene); 
-addExhaustFan(-7.875, 2.3, -4.45, 0, scene);
+// ---- โคมไฟลอฟท์เพดานกลางห้อง ----
+addLoftLamp(0, H - 0.3, 0, 3.0, scene);
 
-addFurn('desk', -8, 0, 3.5, 0, scene);
-addFurn('chair', -8, 0, 2.8, 0, scene);
-addFurn('bookshelf', -9.2, 0, 2.25, Math.PI/2, scene);
+// ---- ครัว (Kitchen) ----
+addFurn('plain_counter', -9.66, 0, -2.775, Math.PI/2, scene, 2.25, 1, 1);
+addFurn('kitchen_sink', -8.75, 0, -4.2, 0, scene); 
+addFurn('plain_counter', -9.255, 0, -4.2, 0, scene, 0.21, 1, 1);
+addFurn('stove_counter', -7.945, 0, -4.2, 0, scene, 0.81, 1, 1);
+addExhaustFan(-8.05, 2.45, -4.45, 0, scene);
+addFurn('bookshelf', -7.69, 0, -2.2, -Math.PI/2, scene, 0.8, 0.7, 1.0);
 
-addFurn('bed', -4, 0, 2.25, Math.PI, scene);
-addFurn('wardrobe', -5.7, 0, 3.5, Math.PI/2, scene);
-addFurn('desk', -2.5, 0, 3.5, -Math.PI/2, scene);
-addFurn('chair', -3.2, 0, 3.5, Math.PI/2, scene);
+// ตู้เย็นย้ายมาตั้งกึ่งกลางใต้บันได
+addFurn('fridge', -4.43, 0, -2.2, Math.PI/2, scene);
 
-addFurn('bed', -4, FL2, 2.25, Math.PI, floor2Group);
-addFurn('wardrobe', -5.7, FL2, 3.5, Math.PI/2, floor2Group); 
-addFurn('desk', -2.5, FL2, 3.5, -Math.PI/2, floor2Group); 
-addFurn('chair', -3.2, FL2, 3.5, Math.PI/2, floor2Group);
+// ============================================================================
+// ---- ห้องนอน 1 (Ground Floor Bedroom) ----
+// ห้ามแก้ไขพิกัดส่วนนี้เด็ดขาด
+addFurn('bed', -3.09, 0, 0.84, -Math.PI/2, scene);
+addFurn('wardrobe', -5.75, 0, 3.86, Math.PI/2, scene, 1, 1, 0.7);
+addFurn('desk', -4.0, 0, 4.16, Math.PI, scene);
+addFurn('chair', -4.0, 0, 3.66, Math.PI, scene);
 
-addFurn('bed', -8, FL2, 1.5, 0, floor2Group);
-addFurn('wardrobe', -9.7, FL2, 3.5, Math.PI/2, floor2Group); 
+// ---- ห้องนอน 2 (2nd Floor Front Bedroom) ----
+// ห้ามแก้ไขพิกัดส่วนนี้เด็ดขาด
+addFurn('bed', -3.09, FL2, 0.84, -Math.PI/2, floor2Group);
+addFurn('wardrobe', -5.75, FL2, 3.86, Math.PI/2, floor2Group, 1, 1, 0.7); 
+addFurn('desk', -4.0, FL2, 4.16, Math.PI, floor2Group); 
+addFurn('chair', -4.0, FL2, 3.66, Math.PI, floor2Group);
+
+// ---- ห้องนอน 3 (2nd Floor Back Bedroom) ----
+// ห้ามแก้ไขพิกัดส่วนนี้เด็ดขาด
+addFurn('bed', -7.09, FL2, 3.66, -Math.PI/2, floor2Group);
+addFurn('wardrobe', -9.66, FL2, 0.64, Math.PI/2, floor2Group); 
+addFurn('desk', -9.66, FL2, 2.5, Math.PI/2, floor2Group);
+addFurn('chair', -9.1, FL2, 2.5, Math.PI/2, floor2Group);
+// ============================================================================
 
 addFurn('toilet', -7.2, 0, -3.5, -Math.PI/2, scene);
 addFurn('sink', -7.2, 0, -2.5, -Math.PI/2, scene);
 addFurn('toilet', -7.2, FL2, -3.5, -Math.PI/2, floor2Group);
 addFurn('sink', -7.2, FL2, -2.5, -Math.PI/2, floor2Group);
 
-addFurn('washing_machine', -9.5, FL2 + 0.09, -5.0, 0, floor2Group);
-addFurn('drying_rack', -9.3, FL2 + 0.09, -3.5, 0, floor2Group);
+addFurn('washing_machine', -9.6, FL2 + 0.09, -2.1, Math.PI/2, floor2Group);
+addFurn('drying_rack', -9.4, FL2 + 0.09, -3.6, Math.PI/2, floor2Group);
 
-// งานศิลปะทั้งหมด (Artworks)
+// ย้ายต้นไม้กระถางไปมุมขวาสุดของระเบียงชั้น 2 (X: -7.9, Z: -4.2)
+addFurn('potted_plant', -9.4, FL2 + 0.09, -5, 0, floor2Group);
+
 addArt(-1.94, FL2 + 1.5, 2.25, 2.4, 1.2, Math.PI / 2, 0x2c3e50, 0xe74c3c, floor2Group);
 addArt(-2.5, FL2 + 1.5, -4.44, 0.7, 1.0, 0, 0x8e44ad, 0xf1c40f, floor2Group);
-addArt(-2.94, 1.5, -2.5, 0.8, 1.0, Math.PI / 2, 0x16a085, 0xf39c12, scene);
-addArt(-2.5, 1.5, -4.44, 0.7, 1.0, 0, 0x2980b9, 0xecf0f1, scene);
+addArt(-1.94, 1.5, 2.25, 0.8, 1.0, Math.PI / 2, 0x16a085, 0xf39c12, scene); 
+addArt(0, 1.5, 4.44, 0.7, 1.0, Math.PI, 0x2980b9, 0xecf0f1, scene); 
 addArt(-9.94, FL2 + 1.5, -0.75, 1.0, 1.2, Math.PI / 2, 0xd35400, 0xbdc3c7, floor2Group);
 
 // ============================================================================
@@ -1310,6 +1554,24 @@ window.toggleMobileUI = function() {
     }
 };
 
+window.toggleCeiling = function() {
+    ceilingsVisible = !ceilingsVisible;
+    ceilingMeshes.forEach(m => m.visible = ceilingsVisible);
+    const btn = document.getElementById('ceilToggleBtn');
+    btn.innerText = ceilingsVisible ? 'Ceiling: ON' : 'Ceiling: OFF';
+    if(ceilingsVisible) btn.classList.remove('off');
+    else btn.classList.add('off');
+};
+
+window.toggleFurniture = function() {
+    furnituresVisible = !furnituresVisible;
+    furnitureMeshes.forEach(m => m.visible = furnituresVisible);
+    const btn = document.getElementById('furnToggleBtn');
+    btn.innerText = furnituresVisible ? 'Furniture: ON' : 'Furniture: OFF';
+    if(furnituresVisible) btn.classList.remove('off');
+    else btn.classList.add('off');
+};
+
 const canvas = renderer.domElement;
 canvas.addEventListener('click', () => {
     if (isFirstPersonMode && !isLocked && !isMobileMode) document.body.requestPointerLock();
@@ -1351,7 +1613,7 @@ canvas.addEventListener('wheel', e => {
     spherical.radius = Math.max(3, Math.min(60, spherical.radius + e.deltaY * 0.02)); 
 });
 
-// ---- Mobile Touch Controls (With Pinch to Zoom & Fixed ID Tracking) ----
+// ---- Mobile Touch Controls ----
 let lookTouchId = null;
 let lastTouchX = 0, lastTouchY = 0;
 let isTouchingScreen = false;
@@ -1571,9 +1833,11 @@ function animate() {
       let p = door.mesh;
       while(p) { if (!p.visible) { isVisible = false; break; } p = p.parent; }
       
-      if (isVisible) {
+      if (doorsWindowsOpen) {
+          door.isOpen = true; // บังคับเปิดค้าง
+      } else if (isVisible) {
           const dist = playerPos.distanceTo(door.trigger);
-          door.isOpen = dist < door.radius;
+          door.isOpen = dist < door.radius; // เซนเซอร์ทำงานอัตโนมัติ
       } else {
           door.isOpen = false;
       }
@@ -1603,13 +1867,25 @@ function animate() {
 
   if (isFirstPersonMode) {
       if (isLocked || isMobileMode) {
-        const hitObjects = [];
+        const allHitObjects = [];
+        const wallHitObjects = [];
+        
         scene.traverse(child => {
             if (child.isMesh && child.material !== dimLineMat) {
                 let isVisible = true;
                 let p = child;
                 while(p) { if(!p.visible) { isVisible = false; break; } p = p.parent; }
-                if(isVisible) hitObjects.push(child);
+                if(isVisible) {
+                    allHitObjects.push(child);
+                    // คัดกรองเฉพาะวัตถุที่มีความสูง > 0.25 ม. ให้เป็นกำแพง
+                    if (child.geometry && child.geometry.parameters && child.geometry.parameters.height !== undefined) {
+                        if (child.geometry.parameters.height > 0.25) {
+                            wallHitObjects.push(child);
+                        }
+                    } else {
+                        wallHitObjects.push(child); // สำหรับรูปทรงอื่นๆ
+                    }
+                }
             }
         });
 
@@ -1633,29 +1909,31 @@ function animate() {
         if (dir.lengthSq() > 0) dir.normalize();
 
         const moveDist = moveSpeed * delta;
-        const playerRadius = 0.25;
+        const playerRadius = 0.12; // ลดรัศมีตัวละคร
+        const stepOffset = 0.5;  // เพิ่มระดับจุดยิง Raycaster เป็น 0.5 เมตรเพื่อให้ก้าวข้ามบันไดได้
 
         if (dir.x !== 0) {
-            const dirX = new THREE.Vector3(Math.sign(dir.x), 0, 0);
-            const rayOriginX = new THREE.Vector3(player.position.x, player.position.y + 0.5, player.position.z);
+            const dirX = new THREE.Vector3(dir.x > 0 ? 1 : (dir.x < 0 ? -1 : 0), 0, 0); // แก้บัค Math.sign
+            const rayOriginX = new THREE.Vector3(player.position.x, player.position.y + stepOffset, player.position.z);
             const rayX = new THREE.Raycaster(rayOriginX, dirX, 0, playerRadius + Math.abs(dir.x * moveDist));
-            if (rayX.intersectObjects(hitObjects, false).length === 0) player.position.x += dir.x * moveDist;
+            if (rayX.intersectObjects(wallHitObjects, false).length === 0) player.position.x += dir.x * moveDist;
         }
 
         if (dir.z !== 0) {
-            const dirZ = new THREE.Vector3(0, 0, Math.sign(dir.z));
-            const rayOriginZ = new THREE.Vector3(player.position.x, player.position.y + 0.5, player.position.z);
+            const dirZ = new THREE.Vector3(0, 0, dir.z > 0 ? 1 : (dir.z < 0 ? -1 : 0)); // แก้บัค Math.sign
+            const rayOriginZ = new THREE.Vector3(player.position.x, player.position.y + stepOffset, player.position.z);
             const rayZ = new THREE.Raycaster(rayOriginZ, dirZ, 0, playerRadius + Math.abs(dir.z * moveDist));
-            if (rayZ.intersectObjects(hitObjects, false).length === 0) player.position.z += dir.z * moveDist;
+            if (rayZ.intersectObjects(wallHitObjects, false).length === 0) player.position.z += dir.z * moveDist;
         }
 
         velocityY += gravity * delta;
         player.position.y += velocityY * delta;
 
         const rayOriginY = player.position.clone();
-        rayOriginY.y += 0.8; 
+        rayOriginY.y += 1.0; 
+        // เช็กพื้นดินใช้ allHitObjects เพื่อให้เหยียบบันไดได้
         const raycasterY = new THREE.Raycaster(rayOriginY, new THREE.Vector3(0, -1, 0), 0, 5);
-        const intersectsY = raycasterY.intersectObjects(hitObjects, false);
+        const intersectsY = raycasterY.intersectObjects(allHitObjects, false);
         
         let floorY = 0; 
         if (intersectsY.length > 0) floorY = intersectsY[0].point.y;
