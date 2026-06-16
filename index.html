@@ -90,6 +90,7 @@
     <div id="left-func-btns">
       <button id="overviewBtn" class="vbtn btn-toggle off" onclick="toggleOverview()">🎥 Overview: OFF</button>
       <button id="roofToggleBtn" class="vbtn btn-toggle" onclick="toggleRoof()">Roof: ON</button>
+      <button id="solarToggleBtn" class="vbtn btn-toggle off" onclick="toggleSolar()">Solar Panels: OFF</button>
       <button id="floor2ToggleBtn" class="vbtn btn-toggle" onclick="toggleFloor2()">Roof+2nd: ON</button>
       <button id="ceilToggleBtn" class="vbtn btn-toggle" onclick="toggleCeiling()">Ceiling: ON</button>
       <button id="furnToggleBtn" class="vbtn btn-toggle off" onclick="toggleFurniture()">Furniture: OFF</button>
@@ -970,6 +971,79 @@ const gableLeft = new THREE.Mesh(gableGeo, wallMat); gableLeft.rotation.y = -Mat
 
 const roofPlaneW = Math.sqrt(eaveHalfW * eaveHalfW + roofDrop * roofDrop), roofAngle = Math.atan2(roofDrop, eaveHalfW), roofCY = H + roofPitchH - roofDrop / 2 + roofTopThick / 2; 
 const roofFrontGeo = new THREE.BoxGeometry(roofLengthX, roofTopThick, roofPlaneW); const roofFront = new THREE.Mesh(roofFrontGeo, roofTopMat); roofFront.position.set(roofCX, roofCY, eaveHalfW / 2); roofFront.rotation.x = roofAngle; roofFront.castShadow = true; roofFront.add(new THREE.LineSegments(new THREE.EdgesGeometry(roofFrontGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 }))); mainRoofGroup.add(roofFront);
+
+// --- ระบบ Solar Panels (ขนาดมาตรฐาน 550Wp 6 แผง) ---
+function createSolarCellMat() {
+    const c = document.createElement('canvas');
+    c.width = 256; c.height = 512;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#0a1d3a'; // สีน้ำเงินเข้มโซล่าเซลล์
+    ctx.fillRect(0, 0, 256, 512);
+    ctx.strokeStyle = '#888888'; // สีเส้นกริดเงินๆ
+    ctx.lineWidth = 1;
+    // ตีเส้นกริดจำลองเซลล์ (6x24 ช่องสำหรับ Half-cut)
+    for(let i=0; i<=6; i++) { let x = i*(256/6); ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 512); ctx.stroke(); }
+    for(let i=0; i<=24; i++) { let y = i*(512/24); ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(256, y); ctx.stroke(); }
+    // แถบแบ่งกลางแผง (Half-cut busbar)
+    ctx.strokeStyle = '#cccccc';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(0, 256); ctx.lineTo(256, 256); ctx.stroke();
+    
+    const tex = new THREE.CanvasTexture(c);
+    return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.2, metalness: 0.8 });
+}
+
+const solarPanelW = 1.13; // กว้างมาตรฐาน 550Wp
+const solarPanelH = 2.28; // ยาวมาตรฐาน 550Wp
+const solarPanelT = 0.035; // ความหนาแผง 35mm
+const solarGap = 0.05; // ระยะห่างระหว่างแผง
+const solarCols = 6; // จัดเรียง 6 แผงแนวนอน
+const solarRows = 1; // จัดเรียง 1 แถวแนวตั้ง (รวม 6 แผงเรียงแนวยาวแถวเดียว)
+// จุดศูนย์กลางสำหรับเริ่มวาด
+const solarStartX = - ((solarCols * solarPanelW + (solarCols - 1) * solarGap) / 2) + solarPanelW / 2;
+const solarStartZ = - ((solarRows * solarPanelH + (solarRows - 1) * solarGap) / 2) + solarPanelH / 2;
+
+const solarPanelsGroup = new THREE.Group();
+let solarVisible = false;
+solarPanelsGroup.visible = solarVisible; // ค่าเริ่มต้นปิด
+
+const sFrameMat = new THREE.MeshStandardMaterial({ color: 0x888888, metalness: 0.5, roughness: 0.5 });
+const sCellMat = createSolarCellMat();
+
+// สร้างแผงโซล่าเซลล์แบบแถวเดียวแนวยาว
+for (let c = 0; c < solarCols; c++) {
+    for (let r = 0; r < solarRows; r++) {
+        const px = solarStartX + c * (solarPanelW + solarGap);
+        const pz = solarStartZ + r * (solarPanelH + solarGap);
+        
+        const pGrp = new THREE.Group();
+        // วางบนผิวหลังคา (คำนวณจากความหนาหลังคา + ความหนาแผง)
+        pGrp.position.set(px, roofTopThick/2 + solarPanelT/2 + 0.01, pz);
+        
+        // กรอบอลูมิเนียม
+        const frame = new THREE.Mesh(new THREE.BoxGeometry(solarPanelW, solarPanelT, solarPanelH), sFrameMat);
+        pGrp.add(frame);
+        
+        // ตัวแผงโซล่าเซลล์ (นูนขึ้นมานิดหน่อยเพื่อไม่ให้ซ้อนกับกรอบ)
+        const cells = new THREE.Mesh(new THREE.BoxGeometry(solarPanelW - 0.06, solarPanelT + 0.005, solarPanelH - 0.06), sCellMat);
+        pGrp.add(cells);
+        
+        solarPanelsGroup.add(pGrp);
+    }
+}
+// นำ Solar Panels ไปยึดติดกับหลังคาหน้าบ้าน (เมื่อหมุนหลังคา แผงจะเอียงตามอัตโนมัติ)
+roofFront.add(solarPanelsGroup);
+
+// ฟังก์ชันเปิด/ปิดโซล่าเซลล์
+window.toggleSolar = function() {
+    solarVisible = !solarVisible;
+    solarPanelsGroup.visible = solarVisible;
+    const btn = document.getElementById('solarToggleBtn');
+    btn.innerText = solarVisible ? 'Solar Panels: ON' : 'Solar Panels: OFF';
+    if(solarVisible) btn.classList.remove('off'); else btn.classList.add('off');
+};
+// --- สิ้นสุดระบบ Solar Panels ---
+
 const roofBackGeo = new THREE.BoxGeometry(roofLengthX, roofTopThick, roofPlaneW); const roofBack = new THREE.Mesh(roofBackGeo, roofTopMat); roofBack.position.set(roofCX, roofCY, -eaveHalfW / 2); roofBack.rotation.x = -roofAngle; roofBack.castShadow = true; roofBack.add(new THREE.LineSegments(new THREE.EdgesGeometry(roofBackGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 }))); mainRoofGroup.add(roofBack);
 const ridgeCapGeo = new THREE.BoxGeometry(roofLengthX, roofTopThick + 0.04, 0.3); const ridgeCap = new THREE.Mesh(ridgeCapGeo, roofTopMat); ridgeCap.position.set(roofCX, H + roofPitchH + roofTopThick/2, 0); ridgeCap.add(new THREE.LineSegments(new THREE.EdgesGeometry(ridgeCapGeo), new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.8 }))); mainRoofGroup.add(ridgeCap);
 
