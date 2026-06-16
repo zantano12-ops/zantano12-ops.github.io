@@ -1200,7 +1200,54 @@ floor2Group.add(cabGrp); furnitureMeshes.push(cabGrp);
 
 addFurn('washing_machine', -9.6, FL2 + 0.09, -2.1, Math.PI/2, floor2Group); addFurn('drying_rack', -9.4, FL2 + 0.09, -3.6, Math.PI/2, floor2Group); 
 
+// --- ฟังก์ชันสำหรับเพิ่มหิ้งพระโมเดิร์น ---
+function addModernBuddhaShelf(x, y, z, parent) {
+    const shelfGrp = new THREE.Group();
+    shelfGrp.position.set(x, y, z);
+
+    // แผ่นหิ้งไม้
+    addBox(0.7, 0.03, 0.25, fWood, 0, 0, 0.125, false, shelfGrp);
+    // ฉากหลังหิ้ง (แผ่นเรียบโมเดิร์นสีเทาเข้ม)
+    addBox(0.7, 0.4, 0.02, darkGreyMat, 0, 0.2, 0.01, false, shelfGrp);
+
+    // ฐานพระ
+    const goldMat = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: 0.8, roughness: 0.3 });
+    addBox(0.18, 0.04, 0.12, fWhite, 0, 0.035, 0.12, false, shelfGrp);
+
+    // องค์พระจำลอง (ทรงโมเดิร์นแนวมินิมอล)
+    const buddhaBody = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.06, 0.12, 16), goldMat);
+    buddhaBody.position.set(0, 0.11, 0.12);
+    shelfGrp.add(buddhaBody);
+    const buddhaHead = new THREE.Mesh(new THREE.SphereGeometry(0.03, 16, 16), goldMat);
+    buddhaHead.position.set(0, 0.19, 0.12);
+    shelfGrp.add(buddhaHead);
+
+    // แจกันมินิมอล 2 ข้างพร้อมใบไม้ประดับ
+    const vaseMat = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 0.2 });
+    const leafMat = new THREE.MeshStandardMaterial({ color: 0x2d5a27, roughness: 0.8 });
+    for(let i of [-1, 1]) {
+        const vase = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.08, 16), vaseMat);
+        vase.position.set(i * 0.2, 0.055, 0.12);
+        shelfGrp.add(vase);
+        const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 8), leafMat);
+        leaf.position.set(i * 0.2, 0.11, 0.12);
+        shelfGrp.add(leaf);
+    }
+
+    // ไฟ LED ซ่อนใต้หิ้ง
+    const led = new THREE.PointLight(0xffddaa, 0.5, 1.5);
+    led.position.set(0, -0.1, 0.15);
+    shelfGrp.add(led);
+
+    parent.add(shelfGrp);
+    furnitureMeshes.push(shelfGrp); // เพิ่มเข้าในระบบเปิด/ปิดเฟอร์นิเจอร์
+}
+
+// ภาพตกแต่งผนัง
 addArt(-2.5, FL2 + 1.5, -4.44, 0.7, 1.0, 0, 0x8e44ad, 0xf1c40f, floor2Group); 
+// หิ้งพระโมเดิร์นเหนือรูปภาพ (ห่างบันได 1 เมตร)
+addModernBuddhaShelf(-2.5, FL2 + 2.1, -4.46, floor2Group);
+
 addArt(0, 1.5, 4.44, 0.7, 1.0, Math.PI, 0x2980b9, 0xecf0f1, scene); 
 addArt(-9.94, FL2 + 1.5, -0.75, 1.0, 1.2, Math.PI / 2, 0xd35400, 0xbdc3c7, floor2Group);
 
