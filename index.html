@@ -809,16 +809,42 @@ pGridZ.forEach(pz => { if (pz === 0.0) { addBox(8.0 + pillarSize, pillarSize, pi
 addBox(pillarSize, pillarSize, 4.5 + pillarSize, pillarMat, -6.0, beamY1, 2.25, true, scene); addBox(pillarSize, pillarSize, 4.5 + pillarSize, pillarMat, -6.0, beamY2, 2.25, true, floor2Group);
 [-5.0, -7.5].forEach(px => { addBox(pillarSize, pillarSize, 4.5 + pillarSize, pillarMat, px, beamY1, -2.25, true, scene); addBox(pillarSize, pillarSize, 4.5 + pillarSize, pillarMat, px, beamY2, -2.25, true, floor2Group); });
 
-// --- อิฐช่องลมบันได (จัดกลุ่มเพื่อซ่อนพร้อมหลังคา) ---
-const stairBotVentGroup = new THREE.Group();
-addVentBlocks(-3.0, FL2/2, -3.0, 3.0, FL2, 'x', stairBotVentGroup);
-scene.add(stairBotVentGroup);
-roofLinkedElements.push(stairBotVentGroup);
+// --- สร้าง Material Backdrop กระเบื้องแผ่นใหญ่ สีน้ำตาลเทา ---
+function createBackdropMat(repeatH) {
+    const tCanv = document.createElement('canvas');
+    tCanv.width = 512; tCanv.height = 512;
+    const tCtx = tCanv.getContext('2d');
+    tCtx.fillStyle = '#8b8378'; // สีน้ำตาลเทา (Grayish brown)
+    tCtx.fillRect(0, 0, 512, 512);
+    // เพิ่มลวดลาย Texture ให้ดูเหมือนผิวหิน/กระเบื้อง
+    for(let i=0; i<1500; i++) {
+        tCtx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)';
+        tCtx.fillRect(Math.random()*512, Math.random()*512, 3, 3);
+    }
+    tCtx.strokeStyle = '#6b6358'; // ร่องยาแนวสีเข้มกว่าพื้นผิวเล็กน้อย
+    tCtx.lineWidth = 4;
+    // สร้างตาราง 2x2 ต่อ 1 Canvas
+    for(let i=0; i<=2; i++) {
+        const p = i * 256;
+        tCtx.beginPath(); tCtx.moveTo(p, 0); tCtx.lineTo(p, 512); tCtx.stroke();
+        tCtx.beginPath(); tCtx.moveTo(0, p); tCtx.lineTo(512, p); tCtx.stroke();
+    }
+    const tex = new THREE.CanvasTexture(tCanv);
+    tex.wrapS = THREE.RepeatWrapping; tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(3.0 / 1.6, repeatH / 1.6); // ปรับสเกลแผ่นตารางให้ดูใหญ่เหมาะสมกับพื้นที่
+    return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5, metalness: 0.1 });
+}
 
-const stairTopVentGroup = new THREE.Group();
-addVentBlocks(-3.0, FL2 + (H - FL2)/2, -3.0, 3.0, H - FL2, 'x', stairTopVentGroup);
-floor2Group.add(stairTopVentGroup);
-roofLinkedElements.push(stairTopVentGroup);
+// --- ผนัง Backdrop บันได (ชั้นล่างและชั้นบน) แทนอิฐช่องลมเดิม ---
+const stairBotBackdropGroup = new THREE.Group();
+addBox(WALL_T + 0.02, FL2, 3.0, createBackdropMat(FL2), -3.0, FL2/2, -3.0, false, stairBotBackdropGroup);
+scene.add(stairBotBackdropGroup);
+roofLinkedElements.push(stairBotBackdropGroup);
+
+const stairTopBackdropGroup = new THREE.Group();
+addBox(WALL_T + 0.02, H - FL2, 3.0, createBackdropMat(H - FL2), -3.0, FL2 + (H - FL2)/2, -3.0, false, stairTopBackdropGroup);
+floor2Group.add(stairTopBackdropGroup);
+roofLinkedElements.push(stairTopBackdropGroup);
 
 addBox(WALL_T, FL2, 3.0, wallMat, -5.0, FL2/2, -3.0, true); addBox(WALL_T, H - FL2, 3.0, wallMat, -5.0, FL2 + (H - FL2)/2, -3.0, true, floor2Group);
 addBox(WALL_T, FL2, 3.0, wallMat, -7.5, FL2/2, -3.0, true); addBox(WALL_T, H - FL2, 3.0, wallMat, -7.5, FL2 + (H - FL2)/2, -3.0, true, floor2Group);
@@ -1076,7 +1102,7 @@ const pillow1 = addBox(0.15, 0.3, 0.35, darkGreyMat, -nookW/2 + 0.12, nookBaseH 
 const pillow2 = addBox(0.15, 0.3, 0.35, darkGreyMat, -nookW/2 + 0.12, nookBaseH + cushionH + 0.15, 0.4, false, nookGrp); pillow2.rotation.z = -0.15;
 floor2Group.add(nookGrp); furnitureMeshes.push(nookGrp);
 
-const cabZStart = 0.05; const cabZEnd = 2.50; const cabL = cabZEnd - cabZStart; const cabZ = cabZStart + cabL/2; const cabW = 0.6; const cabH = FL2 - 0.3; 
+const cabZStart = 0.85; const cabZEnd = 2.50; const cabL = cabZEnd - cabZStart; const cabZ = cabZStart + cabL/2; const cabW = 0.6; const cabH = FL2 - 0.3; 
 const cabGrp = new THREE.Group(); cabGrp.position.set(nookX, FL2, cabZ);
 addBox(0.05, cabH, cabL, fWood, -cabW/2 + 0.025, cabH/2, 0, false, cabGrp); 
 addBox(cabW, cabH, 0.05, fWood, 0, cabH/2, -cabL/2 + 0.025, false, cabGrp); 
